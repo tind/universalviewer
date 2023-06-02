@@ -95,6 +95,7 @@ var Auth09 = /** @class */ (function () {
                 options.warningMessage = LoginWarningMessages_1.LoginWarningMessages.FORBIDDEN;
                 options.showCancelButton = true;
             }
+            console.log("login");
             Auth09.publish(IIIFEvents_1.IIIFEvents.SHOW_LOGIN_DIALOGUE, [
                 {
                     resource: resource,

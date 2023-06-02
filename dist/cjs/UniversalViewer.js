@@ -101,6 +101,9 @@ var UniversalViewer = /** @class */ (function (_super) {
         _this._assignContentHandler(_this.options.data);
         return _this;
     }
+    UniversalViewer.prototype.get = function () {
+        return this._assignedContentHandler;
+    };
     UniversalViewer.prototype.on = function (name, cb, ctx) {
         this._externalEventListeners.push({
             name: name,

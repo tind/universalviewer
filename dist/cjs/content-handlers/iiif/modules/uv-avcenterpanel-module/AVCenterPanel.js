@@ -51,7 +51,7 @@ var AVCenterPanel = /** @class */ (function (_super) {
         this.extensionHost.subscribe(IIIFEvents_1.IIIFEvents.CURRENT_TIME_CHANGE, function (currentTime) {
             _this._whenMediaReady(function () {
                 if (_this.avcomponent) {
-                    _this.avcomponent.setCurrentTime(currentTime);
+                    _this.avcomponent.setCurrentTime(currentTime, true);
                 }
             });
         });
@@ -232,8 +232,10 @@ var AVCenterPanel = /** @class */ (function (_super) {
         var _this = this;
         this.extension.getExternalResources(resources).then(function () {
             if (_this.avcomponent) {
+                var didReset = false;
                 // reset if the media has already been loaded (degraded flow has happened)
                 if (_this.extension.helper.canvasIndex === _this._lastCanvasIndex) {
+                    didReset = true;
                     _this.avcomponent.reset();
                 }
                 _this._lastCanvasIndex = _this.extension.helper.canvasIndex;
@@ -252,6 +254,9 @@ var AVCenterPanel = /** @class */ (function (_super) {
                     limitToRange: _this._limitToRange(),
                     posterImageRatio: _this.config.options.posterImageRatio,
                 });
+                if (didReset) {
+                    _this._viewCanvas(_this._lastCanvasIndex);
+                }
                 // console.log("set up")
                 // this.avcomponent.on('waveformready', () => {
                 //     this.resize();

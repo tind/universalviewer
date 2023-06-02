@@ -27,6 +27,8 @@ var InformationArgs_1 = require("./InformationArgs");
 var InformationType_1 = require("./InformationType");
 var manifesto_js_1 = require("manifesto.js");
 var utils_1 = require("@edsilv/utils");
+// import { Urls } from "@edsilv/utils";
+// import { Storage, StorageType, StorageItem } from "../../../../Utils";
 var HTTPStatusCode = __importStar(require("@edsilv/http-status-codes"));
 var Auth1 = /** @class */ (function () {
     function Auth1() {
@@ -100,13 +102,20 @@ var Auth1 = /** @class */ (function () {
         });
     };
     Auth1.showDegradedMessage = function (resource) {
-        var informationArgs = new InformationArgs_1.InformationArgs(InformationType_1.InformationType.DEGRADED_RESOURCE, resource);
-        Auth1.publish(IIIFEvents_1.IIIFEvents.SHOW_INFORMATION, [informationArgs]);
+        if (resource.kioskService) {
+            // if it's a kiosk service, open the window immediately.
+            Auth1.publish(IIIFEvents_1.IIIFEvents.OPEN_EXTERNAL_RESOURCE, [[resource]]);
+        }
+        else {
+            var informationArgs = new InformationArgs_1.InformationArgs(InformationType_1.InformationType.DEGRADED_RESOURCE, resource);
+            Auth1.publish(IIIFEvents_1.IIIFEvents.SHOW_INFORMATION, [informationArgs]);
+        }
     };
     Auth1.storeAccessToken = function (resource, token) {
         return new Promise(function (resolve, reject) {
             if (resource.tokenService) {
-                utils_1.Storage.set(resource.tokenService.id, token, token.expiresIn, Auth1.storageStrategy);
+                utils_1.Storage.set(resource.tokenService.id, token, token.expiresIn || 3600, // default to 1 hour
+                Auth1.storageStrategy);
                 resolve();
             }
             else {
@@ -185,6 +194,7 @@ var Auth1 = /** @class */ (function () {
             // if necessary, the client can decide not to trust this origin
             var serviceOrigin = Auth1.getOrigin(tokenService.id);
             var messageId = new Date().getTime();
+            // console.log("openTokenService", messageId);
             Auth1.messages[messageId] = {
                 resolve: resolve,
                 reject: reject,
@@ -202,6 +212,7 @@ var Auth1 = /** @class */ (function () {
             // it looks in Auth1.messages to find a corresponding message id with the same origin.
             // if found, it stores the returned access token, resolves and deletes the message.
             // resolving the message resolves the openTokenService promise.
+            // console.log("tokenUrl", tokenUrl);
             $("#commsFrame").prop("src", tokenUrl);
             // reject any unhandled messages after a configurable timeout
             var postMessageTimeout = 5000;
@@ -214,6 +225,10 @@ var Auth1 = /** @class */ (function () {
         });
     };
     Auth1.receiveToken = function (event) {
+        // debug
+        // if (event.origin.startsWith("https://test.auth")) {
+        //   console.log("receiveToken", event);
+        // }
         if (event.data.hasOwnProperty("messageId")) {
             var message_1 = Auth1.messages[event.data.messageId];
             if (message_1 && event.origin == message_1.serviceOrigin) {

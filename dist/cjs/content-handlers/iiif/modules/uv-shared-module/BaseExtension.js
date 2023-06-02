@@ -64,7 +64,7 @@ var ClickThroughDialogue_1 = require("../uv-dialogues-module/ClickThroughDialogu
 var LoginDialogue_1 = require("../uv-dialogues-module/LoginDialogue");
 var RestrictedDialogue_1 = require("../uv-dialogues-module/RestrictedDialogue");
 var Shell_1 = require("./Shell");
-var TestExternalResource_1 = require("./TestExternalResource");
+var manifold_1 = require("@iiif/manifold");
 var dist_commonjs_1 = require("@iiif/vocabulary/dist-commonjs/");
 var KeyCodes = __importStar(require("@edsilv/key-codes"));
 var utils_1 = require("@edsilv/utils");
@@ -268,6 +268,8 @@ var BaseExtension = /** @class */ (function () {
             _this.helper.canvasIndex = canvasIndex;
         });
         this.extensionHost.subscribe(IIIFEvents_1.IIIFEvents.CLOSE_LEFT_PANEL, function () {
+            if (that.$element.hasClass("loading"))
+                that.$element.removeClass("loading");
             _this.resize();
         });
         this.extensionHost.subscribe(IIIFEvents_1.IIIFEvents.CLOSE_RIGHT_PANEL, function () {
@@ -583,6 +585,13 @@ var BaseExtension = /** @class */ (function () {
                 }
                 return related["@id"];
             }
+            // If there's a `homepage` property in the manifest
+            var manifest = this.helper.manifest;
+            var homepage = manifest && manifest.getHomepage();
+            if (homepage) {
+                // Use the `homepage` property in the URL box
+                return homepage;
+            }
         }
         return null;
     };
@@ -695,7 +704,7 @@ var BaseExtension = /** @class */ (function () {
             var canvas = _this.helper.getCanvasByIndex(index);
             var r;
             if (!canvas.externalResource) {
-                r = new TestExternalResource_1.ExternalResource(canvas, {
+                r = new manifold_1.ExternalResource(canvas, {
                     authApiVersion: _this.data.config.options.authAPIVersion,
                 });
             }

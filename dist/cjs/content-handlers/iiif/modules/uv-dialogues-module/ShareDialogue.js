@@ -65,9 +65,13 @@ var ShareDialogue = /** @class */ (function (_super) {
         this.$tabs = $('<div class="tabs"></div>');
         this.$content.append(this.$tabs);
         this.$shareButton = $('<a class="share tab default" tabindex="0">' + this.content.share + "</a>");
-        this.$tabs.append(this.$shareButton);
+        if (utils_1.Bools.getBool(this.config.options.shareEnabled, true)) {
+            this.$tabs.append(this.$shareButton);
+        }
         this.$embedButton = $('<a class="embed tab" tabindex="0">' + this.content.embed + "</a>");
-        this.$tabs.append(this.$embedButton);
+        if (utils_1.Bools.getBool(this.config.options.embedEnabled, false)) {
+            this.$tabs.append(this.$embedButton);
+        }
         this.$tabsContent = $('<div class="tabsContent"></div>');
         this.$content.append(this.$tabsContent);
         this.$footer = $('<div class="footer"></div>');

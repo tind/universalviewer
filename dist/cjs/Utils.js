@@ -36,7 +36,7 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
     }
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getUUID = exports.defaultLocale = exports.isVisible = exports.loadCSS = exports.loadScripts = exports.propertyChanged = exports.propertiesChanged = exports.debounce = exports.isValidUrl = exports.sanitize = exports.merge = void 0;
+exports.StorageType = exports.StorageItem = exports.Storage = exports.getUUID = exports.defaultLocale = exports.isVisible = exports.loadCSS = exports.loadScripts = exports.propertyChanged = exports.propertiesChanged = exports.debounce = exports.isValidUrl = exports.sanitize = exports.merge = void 0;
 var filterXSS = require("xss");
 exports.merge = require("lodash/merge");
 var sanitize = function (html) {
@@ -160,4 +160,155 @@ var getUUID = function () {
     return URL.createObjectURL(new Blob()).substr(-36);
 };
 exports.getUUID = getUUID;
+var Storage = /** @class */ (function () {
+    function Storage() {
+    }
+    Storage.clear = function (storageType) {
+        if (storageType === void 0) { storageType = StorageType.MEMORY; }
+        switch (storageType) {
+            case StorageType.MEMORY:
+                this._memoryStorage = {};
+                break;
+            case StorageType.SESSION:
+                sessionStorage.clear();
+                break;
+            case StorageType.LOCAL:
+                localStorage.clear();
+                break;
+        }
+    };
+    Storage.clearExpired = function (storageType) {
+        if (storageType === void 0) { storageType = StorageType.MEMORY; }
+        var items = this.getItems(storageType);
+        for (var i = 0; i < items.length; i++) {
+            var item = items[i];
+            if (this._isExpired(item)) {
+                this.remove(item.key);
+            }
+        }
+    };
+    Storage.get = function (key, storageType) {
+        if (storageType === void 0) { storageType = StorageType.MEMORY; }
+        var data = null;
+        switch (storageType) {
+            case StorageType.MEMORY:
+                data = this._memoryStorage[key];
+                break;
+            case StorageType.SESSION:
+                data = sessionStorage.getItem(key);
+                break;
+            case StorageType.LOCAL:
+                data = localStorage.getItem(key);
+                break;
+        }
+        if (!data)
+            return null;
+        var item = null;
+        try {
+            item = JSON.parse(data);
+        }
+        catch (error) {
+            return null;
+        }
+        if (!item)
+            return null;
+        if (this._isExpired(item))
+            return null;
+        // useful reference
+        item.key = key;
+        return item;
+    };
+    Storage._isExpired = function (item) {
+        if (new Date().getTime() < item.expiresAt) {
+            return false;
+        }
+        return true;
+    };
+    Storage.getItems = function (storageType) {
+        if (storageType === void 0) { storageType = StorageType.MEMORY; }
+        var items = [];
+        switch (storageType) {
+            case StorageType.MEMORY:
+                var keys = Object.keys(this._memoryStorage);
+                for (var i = 0; i < keys.length; i++) {
+                    var item = this.get(keys[i], StorageType.MEMORY);
+                    if (item) {
+                        items.push(item);
+                    }
+                }
+                break;
+            case StorageType.SESSION:
+                for (var i = 0; i < sessionStorage.length; i++) {
+                    var key = sessionStorage.key(i);
+                    if (key) {
+                        var item = this.get(key, StorageType.SESSION);
+                        if (item) {
+                            items.push(item);
+                        }
+                    }
+                }
+                break;
+            case StorageType.LOCAL:
+                for (var i = 0; i < localStorage.length; i++) {
+                    var key = localStorage.key(i);
+                    if (key) {
+                        var item = this.get(key, StorageType.LOCAL);
+                        if (item) {
+                            items.push(item);
+                        }
+                    }
+                }
+                break;
+        }
+        return items;
+    };
+    Storage.remove = function (key, storageType) {
+        if (storageType === void 0) { storageType = StorageType.MEMORY; }
+        switch (storageType) {
+            case StorageType.MEMORY:
+                delete this._memoryStorage[key];
+                break;
+            case StorageType.SESSION:
+                sessionStorage.removeItem(key);
+                break;
+            case StorageType.LOCAL:
+                localStorage.removeItem(key);
+                break;
+        }
+    };
+    Storage.set = function (key, value, expirationSecs, storageType) {
+        if (storageType === void 0) { storageType = StorageType.MEMORY; }
+        var expirationMS = expirationSecs * 1000;
+        var record = new StorageItem();
+        record.value = value;
+        record.expiresAt = new Date().getTime() + expirationMS;
+        switch (storageType) {
+            case StorageType.MEMORY:
+                this._memoryStorage[key] = JSON.stringify(record);
+                break;
+            case StorageType.SESSION:
+                sessionStorage.setItem(key, JSON.stringify(record));
+                break;
+            case StorageType.LOCAL:
+                localStorage.setItem(key, JSON.stringify(record));
+                break;
+        }
+        return record;
+    };
+    Storage._memoryStorage = {};
+    return Storage;
+}());
+exports.Storage = Storage;
+var StorageItem = /** @class */ (function () {
+    function StorageItem() {
+    }
+    return StorageItem;
+}());
+exports.StorageItem = StorageItem;
+var StorageType;
+(function (StorageType) {
+    StorageType["MEMORY"] = "memory";
+    StorageType["SESSION"] = "session";
+    StorageType["LOCAL"] = "local";
+})(StorageType = exports.StorageType || (exports.StorageType = {}));
 //# sourceMappingURL=Utils.js.map

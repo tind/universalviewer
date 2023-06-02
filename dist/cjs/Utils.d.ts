@@ -12,3 +12,23 @@ export declare const defaultLocale: {
     name: string;
 };
 export declare const getUUID: () => string;
+export declare class Storage {
+    private static _memoryStorage;
+    static clear(storageType?: StorageType): void;
+    static clearExpired(storageType?: StorageType): void;
+    static get(key: string, storageType?: StorageType): StorageItem | null;
+    private static _isExpired;
+    static getItems(storageType?: StorageType): StorageItem[];
+    static remove(key: string, storageType?: StorageType): void;
+    static set(key: string, value: any, expirationSecs: number, storageType?: StorageType): StorageItem;
+}
+export declare class StorageItem {
+    key: string;
+    value: any;
+    expiresAt: number;
+}
+export declare enum StorageType {
+    MEMORY = "memory",
+    SESSION = "session",
+    LOCAL = "local"
+}

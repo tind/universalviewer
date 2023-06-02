@@ -72,7 +72,7 @@ var AuthDialogue = /** @class */ (function (_super) {
     };
     AuthDialogue.prototype.open = function () {
         if (!this.service) {
-            console.error('NO SERVICE');
+            console.error("NO SERVICE");
             return;
         }
         _super.prototype.open.call(this);

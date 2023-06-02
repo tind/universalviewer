@@ -52,7 +52,9 @@ var ExternalResource = /** @class */ (function () {
             if (!id.endsWith("/")) {
                 id += "/";
             }
-            if (service.getProfile() && (manifesto_js_1.Utils.isImageProfile(service.getProfile()) || manifesto_js_1.Utils.isImageServiceType(service.getIIIFResourceType()))) {
+            if (service.getProfile() &&
+                (manifesto_js_1.Utils.isImageProfile(service.getProfile()) ||
+                    manifesto_js_1.Utils.isImageServiceType(service.getIIIFResourceType()))) {
                 infoUri = id + "info.json";
             }
         }
@@ -62,7 +64,6 @@ var ExternalResource = /** @class */ (function () {
         var content = canvas.getContent();
         var images = canvas.getImages();
         var infoUri = null;
-        console.log("_getDataUri");
         // presentation 3
         if (content && content.length) {
             var annotation = content[0];
@@ -107,6 +108,7 @@ var ExternalResource = /** @class */ (function () {
         }
     };
     ExternalResource.prototype._parseAuthServices = function (resource) {
+        console.log("parseAuthServices");
         if (this.authAPIVersion === 0.9) {
             this.clickThroughService = manifesto_js_1.Utils.getService(resource, dist_commonjs_1.ServiceProfile.AUTH_0_CLICK_THROUGH);
             this.loginService = manifesto_js_1.Utils.getService(resource, dist_commonjs_1.ServiceProfile.AUTH_0_LOGIN);
@@ -221,7 +223,6 @@ var ExternalResource = /** @class */ (function () {
         return false;
     };
     ExternalResource.prototype.getData = function (accessToken) {
-        console.log("getData", this.dataUri);
         var that = this;
         that.data = {};
         return new Promise(function (resolve, reject) {
@@ -229,6 +230,7 @@ var ExternalResource = /** @class */ (function () {
                 reject("There is no dataUri to fetch");
                 return;
             }
+            // console.log("getData (manifold)");
             // if the resource has a probe service, use that to get http status code
             if (that.probeService) {
                 that.isProbed = true;
@@ -258,15 +260,17 @@ var ExternalResource = /** @class */ (function () {
                 // xhr implementation
                 var xhr_1 = new XMLHttpRequest();
                 xhr_1.open("GET", that.probeService.id, true);
-                xhr_1.withCredentials = true;
+                // This has been disabled as the request should use the access token.
+                xhr_1.withCredentials = false;
+                if (accessToken) {
+                    xhr_1.setRequestHeader("Authorization", "Bearer " + accessToken.accessToken);
+                }
                 xhr_1.onload = function () {
                     var data = JSON.parse(xhr_1.responseText);
                     var contentLocation = unescape(data.contentLocation);
+                    that.status = xhr_1.status;
                     if (contentLocation !== that.dataUri) {
                         that.status = HTTPStatusCode.MOVED_TEMPORARILY;
-                    }
-                    else {
-                        that.status = HTTPStatusCode.OK;
                     }
                     that.data = data;
                     resolve(that);
@@ -342,7 +346,7 @@ var ExternalResource = /** @class */ (function () {
                 // xhr implementation
                 var xhr_2 = new XMLHttpRequest();
                 xhr_2.open(type, that.dataUri, true);
-                //xhr.withCredentials = true;
+                xhr_2.withCredentials = false;
                 if (accessToken) {
                     xhr_2.setRequestHeader("Authorization", "Bearer " + accessToken.accessToken);
                 }
@@ -350,12 +354,13 @@ var ExternalResource = /** @class */ (function () {
                     // if it's a resource without an info.json
                     // todo: if resource doesn't have a @profile
                     if (!xhr_2.responseText) {
-                        that.status = HTTPStatusCode.OK;
+                        that.status = xhr_2.status || HTTPStatusCode.OK;
                         resolve(that);
                     }
                     else {
                         var data = JSON.parse(xhr_2.responseText);
-                        var uri = unescape(data["@id"]);
+                        var status_1 = xhr_2.status;
+                        var uri = unescape(data["@id"] || data.id);
                         that.data = data;
                         that._parseAuthServices(that.data);
                         that._parseDescriptorDimensions(that.data);
@@ -368,11 +373,13 @@ var ExternalResource = /** @class */ (function () {
                             dataUri = dataUri.substr(0, dataUri.lastIndexOf("/"));
                         }
                         // if the request was redirected to a degraded version and there's a login service to get the full quality version
-                        if (uri !== dataUri && that.loginService) {
+                        if (status_1 === HTTPStatusCode.OK &&
+                            uri !== dataUri &&
+                            (that.loginService || that.kioskService)) {
                             that.status = HTTPStatusCode.MOVED_TEMPORARILY;
                         }
                         else {
-                            that.status = HTTPStatusCode.OK;
+                            that.status = status_1;
                         }
                         resolve(that);
                     }

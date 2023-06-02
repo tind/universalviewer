@@ -17,19 +17,34 @@ var InformationFactory = /** @class */ (function () {
             case InformationType_1.InformationType.DEGRADED_RESOURCE:
                 var actions = [];
                 var loginAction = new InformationAction_1.InformationAction();
-                var label = args.param.loginService.getConfirmLabel();
+                var label = void 0;
+                if (args.param.loginService) {
+                    label = args.param.loginService.getConfirmLabel();
+                }
+                else {
+                    label = args.param.kioskService.getConfirmLabel();
+                }
                 if (!label) {
-                    label = this.extension.data.config.content.fallbackDegradedLabel || 'login';
+                    label =
+                        this.extension.data.config.content.fallbackDegradedLabel || "login";
                 }
                 loginAction.label = label;
                 var resource_1 = args.param;
                 loginAction.action = function () {
-                    resource_1.authHoldingPage = window.open("", "_blank");
+                    if (args.param.loginService) {
+                        resource_1.authHoldingPage = window.open("", "_blank");
+                    }
                     _this.extension.extensionHost.publish(IIIFEvents_1.IIIFEvents.HIDE_INFORMATION);
                     _this.extension.extensionHost.publish(IIIFEvents_1.IIIFEvents.OPEN_EXTERNAL_RESOURCE, [[resource_1]]);
                 };
                 actions.push(loginAction);
-                var message = args.param.loginService.getServiceLabel();
+                var message = void 0;
+                if (args.param.loginService) {
+                    message = args.param.loginService.getServiceLabel();
+                }
+                else {
+                    message = args.param.kioskService.getServiceLabel();
+                }
                 if (!message) {
                     message = this.extension.data.config.content.fallbackDegradedMessage;
                 }

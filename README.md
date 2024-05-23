@@ -1,3 +1,50 @@
+# TIND Universal Viewer
+
+TIND Universal Viewer is a fork of [Universal Viewer](https://github.com/UniversalViewer/universalviewer). It contains the following changes:
+
+- Removes bundled jQuery by changing all occurrences of `require("jquery")` with `window.$`.
+- Removes GitHub Workflows.
+
+## Publishing
+
+Publishing is done manually. Here is how.
+
+1. Make sure you are on the latest `develop` branch
+
+    ```shell
+    git checkout develop
+    git fetch
+    git reset --hard origin/develop
+    ```
+
+2. Bump the version. Note: this creates and tags a commit which should be pushed.
+
+    ```shell
+    npm version prerelease --preid=alpha
+    git push origin develop
+    ```
+
+3. Install NPM dependencies
+
+    ```shell
+    npm ci
+    ```
+
+4. Build the assets
+
+    ```shell
+    npm run build
+    ```
+
+5. Publish
+
+    ```shell
+    export NPM_TOKEN=<your token here>
+    npm publish --access public --otp <2fa one time code here>
+    ```
+
+----
+
 <p align="center">
 <img src="https://avatars0.githubusercontent.com/u/9430521" style="width: 150px;" />
 <h1 align="center" style="width: 60%; margin-left: auto; margin-right: auto;">Universal Viewer</h1>

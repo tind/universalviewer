@@ -280,9 +280,11 @@ export class FooterPanel<
     );
 
     if (configEnabled) {
-      this.$downloadButton.show();
+      // this.$downloadButton.show();
+      document.querySelector("#download-btn")?.setAttribute("style", "");
     } else {
-      this.$downloadButton.hide();
+      document.querySelector("#download-btn")?.setAttribute("style", "display: none");
+      // this.$downloadButton.hide();
     }
   }
 

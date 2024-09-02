@@ -33,7 +33,7 @@ Publishing is done manually. Here is how.
 4. Build the assets
 
     ```shell
-    npm run build
+    npm run build && npm run build-tsc && npm run build-es
     ```
 
 5. Publish
@@ -71,20 +71,21 @@ A community-developed open source project on a mission<br/> to help you share yo
     npm install universalviewer --save
 
 <br/>
-    
+
 > Please note that UV v4 is designed to work on [evergreen browsers](https://www.w3.org/2001/tag/doc/evergreen-web/). If you need IE11 support, please use [UV v3](https://github.com/UniversalViewer/universalviewer/tree/v3).
 > Microsoft no longer supports IE11, and it [reached end-of-life on June 15 2022](https://blogs.windows.com/windowsexperience/2021/05/19/the-future-of-internet-explorer-on-windows-10-is-in-microsoft-edge/).
 
 <br/>
 
-- [**Website**](#-website)
-- [**Scope**](#-scope)
-- [**Getting Started**](#-getting-started)
-- [**Contributing**](#-contributing)
-- [**Sponsors**](#-sponsors)
-- [**License**](#-license)
-- [**Accessibility Statement**](#-accessibility-statement)
-- [**Feedback**](#-feedback)
+- [TIND Universal Viewer](#tind-universal-viewer)
+  - [Publishing](#publishing)
+  - [🌐 Website](#-website)
+  - [📖 Getting Started](#-getting-started)
+  - [💻 Contributing](#-contributing)
+  - [🏅 Sponsors](#-sponsors)
+  - [📖 License](#-license)
+  - [📖 Accessibility Statement](#-accessibility-statement)
+  - [📣 Feedback](#-feedback)
 
 ## 🌐 Website
 

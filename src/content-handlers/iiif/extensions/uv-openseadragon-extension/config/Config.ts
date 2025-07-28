@@ -130,6 +130,8 @@ type OpenSeadragonCenterPanelOptions = CenterPanelOptions & {
   trimAttributionCount: number;
   /** Ratio of visibility */
   visibilityRatio: number;
+  /** The maximum amount of time in milliseconds an image operation can take */
+  tileTimeout: number;
 };
 
 type OpenSeadragonCenterPanelContent = CenterPanelContent & {

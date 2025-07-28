@@ -356,7 +356,8 @@
         "subtitleEnabled": true,
         "titleEnabled": true,
         "trimAttributionCount": 150,
-        "visibilityRatio": 0.5
+        "visibilityRatio": 0.5,
+        "tileTimeout": 30000
       },
       "content": {
         "attribution": "$attribution",

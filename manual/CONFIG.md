@@ -878,6 +878,11 @@ Controls the percentage of the canvas OpenSeadragon will allow to be empty based
 **Default**: `true`  
 Whether to zoom in to the first annotation on load.
 
+##### tileTimeout
+**Type**: `number`
+**Default**: `30_000`
+Controls the maximum amount of time in milliseconds OpenSeadragon allows for any tile operation.
+
 #### pdfCenterPanel
 
 ##### titleEnabled  

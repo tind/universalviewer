@@ -833,11 +833,6 @@ Maximum pixel ratio for zoom.
 **Default**: `true`  
 Determines whether the most specific (deeply nested) requiredStatement is displayed, such as one defined at the canvas level instead of the higher manifest level, when multiple requiredStatements exist within the manifest. requiredStatementEnabled must also be set to true for this to show. 
 
-##### requiredStatementEnabled  
-**Type**: `boolean`  
-**Default**: `true`  
-Determines if the [required statement](https://iiif.io/api/cookbook/recipe/0008-rights/) is enabled.
-
 ##### navigatorPosition  
 **Type**: `string`  
 **Default**: `"BOTTOM_RIGHT"`  
@@ -847,6 +842,11 @@ Position of the navigator.
 **Type**: `number`  
 **Default**: `50`  
 Gap between pages.
+
+##### requiredStatementEnabled
+**Type**: `boolean`
+**Default**: `true`
+Determines if the [required statement](https://iiif.io/api/cookbook/recipe/0008-rights/) is enabled.
 
 ##### showHomeControl  
 **Type**: `boolean`  
@@ -862,6 +862,11 @@ Determines if adjust image control is shown.
 **Type**: `boolean`  
 **Default**: `true`  
 Determines if the subtitle is enabled.
+
+##### tileTimeout
+**Type**: `number`
+**Default**: `30_000`
+Controls the maximum amount of time in milliseconds OpenSeadragon allows for any tile operation.
 
 ##### titleEnabled  
 **Type**: `boolean`  

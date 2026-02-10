@@ -1,4 +1,4 @@
-import { Dimensions } from "@edsilv/utils";
+import { Dimensions } from "../../Utils";
 
 const $ = window.$;
 import { IIIFEvents } from "../../IIIFEvents";
@@ -14,7 +14,8 @@ import {
   Rendering,
 } from "manifesto.js";
 import "mediaelement/build/mediaelement-and-player";
-import "mediaelement-plugins/dist/source-chooser/source-chooser";
+import "mediaelement/build/mediaelementplayer.min.css";
+import "./js/source-chooser-fixed.js";
 import "mediaelement-plugins/dist/source-chooser/source-chooser.css";
 import { TFragment } from "../uv-shared-module/TFragment";
 import { Events } from "../../../../Events";
@@ -33,7 +34,7 @@ type MediaSourceDescriptor = {
 };
 
 export class MediaElementCenterPanel extends CenterPanel<
-  Config["modules"]["mediaelementCenterPanel"]
+  Config["modules"]["mediaElementCenterPanel"]
 > {
   $wrapper: JQuery;
   $container: JQuery;
@@ -42,13 +43,15 @@ export class MediaElementCenterPanel extends CenterPanel<
   mediaWidth: number;
   player: any;
   title: string | null;
+  pauseTimeoutId: any = null;
+  muted: boolean = false;
 
   constructor($element: JQuery) {
     super($element);
   }
 
   create(): void {
-    this.setConfig("mediaelementCenterPanel");
+    this.setConfig("mediaElementCenterPanel");
 
     super.create();
 
@@ -59,12 +62,54 @@ export class MediaElementCenterPanel extends CenterPanel<
     });
 
     this.extensionHost.subscribe(IIIFEvents.SET_TARGET, (target: TFragment) => {
-      let t = target.t;
-      if (Array.isArray(t)) {
-        t = t[0];
+      // Clear any existing timeout
+      if (that.pauseTimeoutId !== null) {
+        clearTimeout(that.pauseTimeoutId);
+        that.pauseTimeoutId = null;
       }
+
+      let t: number | [number, number] = target.t;
+
+      if (Array.isArray(t)) {
+        if ((t as [number] | [number, number]).length === 1) {
+          t = t[0];
+        } else {
+          const [startTime, endTime] = t;
+
+          if (endTime <= startTime) {
+            console.error("endTime must be greater than startTime");
+            return;
+          }
+
+          that.player.setCurrentTime(startTime);
+
+          if (that.config.options.autoPlayOnSetTarget) {
+            const duration = (endTime - startTime) * 1000;
+
+            that.pauseTimeoutId = setTimeout(() => {
+              that.player.pause();
+              that.pauseTimeoutId = null; // Clear the timeout ID after execution
+            }, duration);
+
+            that.player.play();
+          }
+
+          return;
+        }
+      }
+
       that.player.setCurrentTime(t);
-      that.player.play();
+
+      if (that.config.options.autoPlayOnSetTarget) {
+        that.player.play();
+      }
+    });
+
+    this.extensionHost.subscribe(IIIFEvents.SET_MUTED, (muted: boolean) => {
+      if (that.player) {
+        that.player.setMuted(muted);
+        that.updateMutedAttribute(muted);
+      }
     });
 
     this.extensionHost.subscribe(
@@ -83,6 +128,14 @@ export class MediaElementCenterPanel extends CenterPanel<
     this.title = this.extension.helper.getLabel();
   }
 
+  updateMutedAttribute(muted: boolean) {
+    if (muted) {
+      this.$media.attr("muted", "");
+    } else {
+      this.$media.removeAttr("muted");
+    }
+  }
+
   async openMedia(resources: IExternalResource[]) {
     const that = this;
 
@@ -95,9 +148,10 @@ export class MediaElementCenterPanel extends CenterPanel<
     this.mediaHeight = this.options.defaultHeight;
     this.mediaWidth = this.options.defaultWidth;
 
-    const poster: string = (<IMediaElementExtension>(
+    const poster: string | null = (<IMediaElementExtension>(
       this.extension
     )).getPosterImageUri();
+
     const sources: Array<MediaSourceDescriptor> = [];
     const subtitles: Array<TextTrackDescriptor> = [];
 
@@ -107,7 +161,9 @@ export class MediaElementCenterPanel extends CenterPanel<
       canvas.getRenderings().forEach((rendering: Rendering) => {
         if (this.isTypeMedia(rendering)) {
           sources.push({
-            label: rendering.getLabel().getValue() ?? rendering.getFormat().toString(),
+            label:
+              rendering.getLabel().getValue() ??
+              rendering.getFormat().toString(),
             type: rendering.getFormat().toString(),
             src: rendering.id,
           });
@@ -178,7 +234,7 @@ export class MediaElementCenterPanel extends CenterPanel<
           "sourcechooser",
           "fullscreen",
         ],
-        success: function(mediaElement: any, originalNode: any) {
+        success: function (mediaElement: any, originalNode: any) {
           mediaElement.addEventListener("loadstart", () => {
             // console.log("loadstart");
             that.resize();
@@ -192,6 +248,10 @@ export class MediaElementCenterPanel extends CenterPanel<
           });
 
           mediaElement.addEventListener("pause", () => {
+            if (this.pauseTimeoutId !== null) {
+              clearTimeout(this.pauseTimeoutId);
+              this.pauseTimeoutId = null;
+            }
             // mediaelement creates a pause event before the ended event. ignore this.
             if (
               Math.floor(mediaElement.currentTime) !=
@@ -216,6 +276,25 @@ export class MediaElementCenterPanel extends CenterPanel<
               MediaElementExtensionEvents.MEDIA_TIME_UPDATE,
               Math.floor(mediaElement.currentTime)
             );
+          });
+
+          mediaElement.addEventListener("volumechange", (volume) => {
+            const muted: boolean = volume.detail.target.getMuted();
+
+            if (that.muted === false && muted === true) {
+              that.muted = true;
+              that.extensionHost.fire(MediaElementExtensionEvents.MEDIA_MUTED);
+            }
+
+            if (that.muted === true && muted === false) {
+              that.muted = false;
+
+              that.extensionHost.fire(
+                MediaElementExtensionEvents.MEDIA_UNMUTED
+              );
+            }
+
+            that.updateMutedAttribute(that.muted);
           });
         },
       });
@@ -245,9 +324,10 @@ export class MediaElementCenterPanel extends CenterPanel<
         ],
         stretching: "responsive",
         defaultAudioHeight: "auto",
+        hideVolumeOnTouchDevices: false,
         showPosterWhenPaused: true,
         showPosterWhenEnded: true,
-        success: function(mediaElement: any, originalNode: any) {
+        success: function (mediaElement: any, originalNode: any) {
           mediaElement.addEventListener("play", () => {
             that.extensionHost.publish(
               MediaElementExtensionEvents.MEDIA_PLAYED,
@@ -256,6 +336,10 @@ export class MediaElementCenterPanel extends CenterPanel<
           });
 
           mediaElement.addEventListener("pause", () => {
+            if (this.pauseTimeoutId !== null) {
+              clearTimeout(this.pauseTimeoutId);
+              this.pauseTimeoutId = null;
+            }
             // mediaelement creates a pause event before the ended event. ignore this.
             if (
               Math.floor(mediaElement.currentTime) !=
@@ -281,6 +365,24 @@ export class MediaElementCenterPanel extends CenterPanel<
               Math.floor(mediaElement.currentTime)
             );
           });
+
+          mediaElement.addEventListener("volumechange", (volume) => {
+            const muted: boolean = volume.detail.target.getMuted();
+
+            if (that.muted === false && muted === true) {
+              that.muted = true;
+              that.extensionHost.fire(MediaElementExtensionEvents.MEDIA_MUTED);
+            }
+
+            if (that.muted === true && muted === false) {
+              that.muted = false;
+              that.extensionHost.fire(
+                MediaElementExtensionEvents.MEDIA_UNMUTED
+              );
+            }
+
+            that.updateMutedAttribute(that.muted);
+          });
         },
       });
     }
@@ -292,10 +394,11 @@ export class MediaElementCenterPanel extends CenterPanel<
   appendTextTracks(subtitles: Array<TextTrackDescriptor>) {
     for (const subtitle of subtitles) {
       this.$media.append(
-        $(`<track label="${subtitle.label}" kind="subtitles" srclang="${subtitle.language
-          }" src="${subtitle.id}" ${
-            subtitles.indexOf(subtitle) === 0 ? "default" : ""
-          }>
+        $(`<track label="${subtitle.label}" kind="subtitles" srclang="${
+          subtitle.language
+        }" src="${subtitle.id}" ${
+          subtitles.indexOf(subtitle) === 0 ? "default" : ""
+        }>
 `)
       );
     }

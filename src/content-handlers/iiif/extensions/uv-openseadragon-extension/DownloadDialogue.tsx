@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import cx from "classnames";
-import { Files, Maths, Strings } from "@edsilv/utils";
+import { Files, Maths, Strings } from "../../Utils";
 import {
   Canvas,
   Size,
@@ -10,6 +10,7 @@ import {
   IExternalImageResourceData,
   Resource,
   Annotation,
+  AnnotationBody,
   ManifestResource,
   Rendering,
   LanguageMap,
@@ -35,6 +36,7 @@ const DownloadDialogue = ({
   maxImageWidth,
   mediaDownloadEnabled,
   onClose,
+  onDownload,
   onDownloadCurrentView,
   onDownloadSelection,
   onShowTermsOfUse,
@@ -63,6 +65,7 @@ const DownloadDialogue = ({
   maxImageWidth: number;
   mediaDownloadEnabled: boolean;
   onClose: () => void;
+  onDownload: (type: DownloadOption, label: string) => void;
   onDownloadCurrentView: (canvas: Canvas) => void;
   onDownloadSelection: () => void;
   onShowTermsOfUse: () => void;
@@ -78,7 +81,6 @@ const DownloadDialogue = ({
   triggerButton: HTMLElement;
 }) => {
   const ref = useRef<HTMLDivElement>(null);
-
   const [position, setPosition] = useState({ top: "0px", left: "0px" });
   const [arrowPosition, setArrowPosition] = useState("0px 0px");
   const [selectedPage, setSelectedPage] = useState<"left" | "right">("left");
@@ -109,20 +111,70 @@ const DownloadDialogue = ({
 
       setPosition({ top: `${top}px`, left: `${left}px` });
       setArrowPosition(`${arrowLeft}px 0px`);
+
+      // Focus on the first element when opened
+      const focusableElements = getFocusableElements();
+      if (focusableElements && focusableElements.length > 0) {
+        focusableElements[0]?.focus();
+      }
     }
   }, [open]);
 
-  if (!open) {
-    return null;
-  }
+  // Method to get focusable elements inside the component
+  const getFocusableElements = (): NodeListOf<HTMLElement> | null => {
+    return ref.current?.querySelectorAll(
+      'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+    ) as NodeListOf<HTMLElement>;
+  };
+
+  // Focus trapping logic
+  const handleTabKey = (e: KeyboardEvent) => {
+    if (e.key === "Tab") {
+      const focusableElements = getFocusableElements();
+      if (!focusableElements) return;
+
+      const firstFocusableElement = focusableElements[0] as HTMLElement;
+      const lastFocusableElement = focusableElements[
+        focusableElements.length - 1
+      ] as HTMLElement;
+
+      if (e.shiftKey) {
+        // If Shift + Tab is pressed and the focus is on the first element, go to the last
+        if (document.activeElement === firstFocusableElement) {
+          e.preventDefault();
+          lastFocusableElement.focus();
+        }
+      } else {
+        // If Tab is pressed and the focus is on the last element, go to the first
+        if (document.activeElement === lastFocusableElement) {
+          e.preventDefault();
+          firstFocusableElement.focus();
+        }
+      }
+    }
+  };
+
+  useEffect(() => {
+    if (open) {
+      document.addEventListener("keydown", handleTabKey);
+    }
+
+    return () => {
+      document.removeEventListener("keydown", handleTabKey);
+    };
+  }, [open]);
+
+  if (!open) return null;
 
   function getCanvasDimensions(canvas: Canvas): Size | null {
     // externalResource may not have loaded yet
     if (canvas.externalResource.data) {
-      const width: number | undefined = (canvas.externalResource
-        .data as IExternalImageResourceData).width;
-      const height: number | undefined = (canvas.externalResource
-        .data as IExternalImageResourceData).height;
+      const width: number | undefined = (
+        canvas.externalResource.data as IExternalImageResourceData
+      ).width;
+      const height: number | undefined = (
+        canvas.externalResource.data as IExternalImageResourceData
+      ).height;
       if (width && height) {
         return new Size(width, height);
       }
@@ -183,7 +235,8 @@ const DownloadDialogue = ({
   }
 
   function isDownloadOptionAvailable(option: DownloadOption) {
-    const selectedResource: IExternalResourceData | null = getSelectedResource();
+    const selectedResource: IExternalResourceData | null =
+      getSelectedResource();
 
     if (!selectedResource) {
       return false;
@@ -213,13 +266,13 @@ const DownloadDialogue = ({
         }
 
         return !paged;
-      case DownloadOption.CANVAS_RENDERINGS:
-      case DownloadOption.IMAGE_RENDERINGS:
       case DownloadOption.WHOLE_IMAGE_HIGH_RES:
+        // If high-res download is disabled, bail out now; otherwise drop into cases below.
         if (!downloadWholeImageHighResEnabled) {
           return false;
         }
-
+      case DownloadOption.CANVAS_RENDERINGS:
+      case DownloadOption.IMAGE_RENDERINGS:
         const maxDimensions: Size | null = canvas.getMaxDimensions();
 
         if (maxDimensions) {
@@ -264,11 +317,37 @@ const DownloadDialogue = ({
     return null;
   }
 
+  function getCanvasImageAnnotationBody(canvas: Canvas): AnnotationBody | null {
+    const images: Annotation[] = canvas.getContent();
+    if (images.length == 0) {
+      return null;
+    }
+
+    const bodies: AnnotationBody[] = images[0].getBody();
+    if (bodies.length == 0) {
+      return null;
+    }
+
+    return bodies[0];
+  }
+
   function getCanvasMimeType(canvas: Canvas): string | null {
+    // presentation api version 2
     const resource: Resource | null = getCanvasImageResource(canvas);
 
     if (resource) {
       const format: MediaType | null = resource.getFormat();
+
+      if (format) {
+        return format.toString();
+      }
+    }
+
+    // presentation api version 3
+    const annotationBody: AnnotationBody | null =
+      getCanvasImageAnnotationBody(canvas);
+    if (annotationBody) {
+      const format: MediaType | null = annotationBody.getFormat();
 
       if (format) {
         return format.toString();
@@ -373,9 +452,8 @@ const DownloadDialogue = ({
 
   function getCurrentViewLabel() {
     let label: string = content.currentViewAsJpg;
-    const dimensions: CroppedImageDimensions | null = getCroppedImageDimensions(
-      getSelectedCanvas()
-    );
+    const dimensions: CroppedImageDimensions | null =
+      getCroppedImageDimensions(getSelectedCanvas());
 
     // dimensions
     if (dimensions) {
@@ -398,9 +476,11 @@ const DownloadDialogue = ({
   function Renderings({
     resource,
     defaultLabel,
+    type,
   }: {
     resource: ManifestResource;
     defaultLabel: string;
+    type: DownloadOption;
   }) {
     const renderings: Rendering[] = resource.getRenderings();
 
@@ -428,6 +508,7 @@ const DownloadDialogue = ({
             <li key={index}>
               <button
                 onClick={() => {
+                  onDownload(type, label);
                   window.open(rendering.id, "_blank");
                 }}
               >
@@ -449,12 +530,14 @@ const DownloadDialogue = ({
 
     return (
       <>
-        {canvas.ranges?.map((range: Range) => {
+        {canvas.ranges?.map((range: Range, index) => (
           <Renderings
             resource={range}
             defaultLabel={content.entireFileAsOriginal}
-          />;
-        })}
+            key={`range-rendering-${String(index)}`}
+            type={DownloadOption.RANGE_RENDERINGS}
+          />
+        ))}
       </>
     );
   }
@@ -465,12 +548,14 @@ const DownloadDialogue = ({
 
     return (
       <>
-        {images.map((image: Annotation) => {
+        {images.map((image: Annotation, index) => (
           <Renderings
             resource={image.getResource()}
             defaultLabel={content.entireFileAsOriginal}
-          />;
-        })}
+            key={`image-rendering-${String(index)}`}
+            type={DownloadOption.IMAGE_RENDERINGS}
+          />
+        ))}
       </>
     );
   }
@@ -482,6 +567,7 @@ const DownloadDialogue = ({
       <Renderings
         resource={canvas}
         defaultLabel={content.entireFileAsOriginal}
+        type={DownloadOption.CANVAS_RENDERINGS}
       />
     );
   }
@@ -498,10 +584,12 @@ const DownloadDialogue = ({
         <Renderings
           resource={sequence}
           defaultLabel={content.entireFileAsOriginal}
+          type={DownloadOption.MANIFEST_RENDERINGS}
         />
         <Renderings
           resource={manifest}
           defaultLabel={content.entireFileAsOriginal}
+          type={DownloadOption.MANIFEST_RENDERINGS}
         />
       </>
     );
@@ -563,6 +651,10 @@ const DownloadDialogue = ({
               <li className="option single">
                 <button
                   onClick={() => {
+                    onDownload(
+                      DownloadOption.CURRENT_VIEW,
+                      getCurrentViewLabel()
+                    );
                     onDownloadCurrentView(getSelectedCanvas());
                   }}
                 >
@@ -574,6 +666,10 @@ const DownloadDialogue = ({
               <li className="option single">
                 <button
                   onClick={() => {
+                    onDownload(
+                      DownloadOption.WHOLE_IMAGES_HIGH_RES,
+                      getWholeImageHighResLabel()
+                    );
                     window.open(getCanvasHighResImageUri(getSelectedCanvas()));
                   }}
                 >
@@ -585,9 +681,12 @@ const DownloadDialogue = ({
               <li className="option single">
                 <button
                   onClick={() => {
-                    const imageUri: string | null = getConfinedImageUri(
-                      getSelectedCanvas()
+                    onDownload(
+                      DownloadOption.WHOLE_IMAGE_LOW_RES,
+                      getWholeImageLowResLabel()
                     );
+                    const imageUri: string | null =
+                      getConfinedImageUri(getSelectedCanvas());
 
                     if (imageUri) {
                       window.open(imageUri);
@@ -620,6 +719,7 @@ const DownloadDialogue = ({
               <li className="option single">
                 <button
                   onClick={() => {
+                    onDownload(DownloadOption.SELECTION, content.selection);
                     onDownloadSelection();
                   }}
                 >

@@ -1,15 +1,18 @@
-import { StorageType } from "@edsilv/utils";
+import { StorageType } from "../iiif/Utils";
 import {
   ExpandPanel,
   ExpandPanelContent,
   ExpandPanelOptions,
 } from "./extensions/config/ExpandPanel";
-export { StorageType } from "@edsilv/utils";
+export { StorageType } from "../iiif/Utils";
 
 export type MetricType = string | "sm" | "md" | "lg" | "xl";
 
 export class Metric {
-  constructor(public type: MetricType, public minWidth: number) {}
+  constructor(
+    public type: MetricType,
+    public minWidth: number
+  ) {}
 }
 
 export type Options = {
@@ -61,11 +64,8 @@ export type Options = {
   /** Determines if paging is enabled */
   pagingEnabled?: boolean;
 
-  /** Determines if paging option is enabled */
-  pagingOptionEnabled?: boolean;
-
-  /** Determines if access control is pessimistic */
-  pessimisticAccessControl?: boolean;
+  /** Determines if the mediaelement extension should be preferred */
+  preferMediaElementExtension?: boolean;
 
   /** Determines if viewport is preserved */
   preserveViewport?: boolean;
@@ -82,14 +82,8 @@ export type Options = {
   /** Determines if search within is enabled */
   searchWithinEnabled?: boolean;
 
-  /** Determines if seealso content is enabled */
-  seeAlsoEnabled?: boolean;
-
   /** Determines if terms of use are enabled */
   termsOfUseEnabled: boolean;
-
-  /** Theme string */
-  theme: string;
 
   /** Storage for tokens */
   tokenStorage: string | StorageType;
@@ -102,6 +96,12 @@ export type Options = {
 
   /** Determines if zoom to bounds is enabled */
   zoomToBoundsEnabled?: boolean;
+
+  /** Controls whether to have animations or not */
+  reducedAnimation?: boolean;
+
+  /** A default animation duration */
+  animationDuration?: number;
 };
 
 type Locale = {
@@ -130,11 +130,15 @@ export type HeaderPanelOptions = {
   localeToggleEnabled: boolean;
   /** Determines if settings button is enabled */
   settingsButtonEnabled: boolean;
+  /** Determines if help is enabled */
+  helpEnabled?: boolean;
+  helpUrl?: string;
 };
 
 export type HeaderPanelContent = {
   close: string;
   settings: string;
+  help: string;
 };
 
 type HeaderPanel = ModuleConfig & {
@@ -153,6 +157,8 @@ export type CenterPanelOptions = {
 
 export type CenterPanelContent = {
   attribution: string;
+  close: string;
+  closeAttribution: string;
 };
 
 type CenterPanel = ModuleConfig & {
@@ -191,6 +197,10 @@ export type FooterPanelContent = {
   feedback: string;
   fullScreen: string;
   moreInfo: string;
+  openLeftPanel: string;
+  closeLeftPanel: string;
+  openRightPanel: string;
+  closeRightPanel: string;
   open: string;
   share: string;
 };
@@ -219,8 +229,9 @@ export type SettingsDialogueContent = DialogueContent & {
   locale: string;
   navigatorEnabled: string;
   clickToZoomEnabled: string;
-  pagingEnabled: string;
+  pagingEnabled?: string;
   reducedMotion: string;
+  truncateThumbnailLabels: string;
   preserveViewport: string;
   title: string;
   website: string;
@@ -232,27 +243,34 @@ type SettingsDialogue = ModuleConfig & {
 };
 
 export type ShareDialogueOptions = DialogueOptions & {
+  /** Determines if copy buttons are enabled */
+  copyToClipboardEnabled: boolean;
   /** Determines if embed is enabled */
   embedEnabled: boolean;
+  /** Set host for embed code (default: window.location.hostname) */
+  embedHost?: string;
+  /** Set port for embed code (default: window.location.protocol) */
+  embedPort?: number;
+  /** Set path to uv.html on embed host (default: /uv.html) */
+  embedPath: string;
   /** Template for embedding */
   embedTemplate: string;
-  /** Determines if instructions are enabled */
-  instructionsEnabled: boolean;
   /** Determines if sharing is enabled */
   shareEnabled: boolean;
-  /** Determines if sharing frame is enabled */
-  shareFrameEnabled: boolean;
   /** Determines if sharing manifests is enabled */
   shareManifestsEnabled: boolean;
 };
 
 export type ShareDialogueContent = DialogueContent & {
+  copyBtn: string;
+  copyToClipboard: string;
   customSize: string;
   embed: string;
   embedInstructions: string;
   height: string;
   iiif: string;
   share: string;
+  shareLink: string;
   shareInstructions: string;
   size: string;
   width: string;
@@ -274,6 +292,22 @@ type AuthDialogueContent = DialogueContent & {
 type AuthDialogue = ModuleConfig & {
   options: AuthDialogueOptions;
   content: AuthDialogueContent;
+};
+
+type AdjustImageDialogueOptions = DialogueOptions & {};
+
+type AdjustImageDialogueContent = DialogueContent & {
+  title: string;
+  brightness: string;
+  contrast: string;
+  saturation: string;
+  reset: string;
+  remember: string;
+};
+
+export type AdjustImageDialogue = ModuleConfig & {
+  options: AdjustImageDialogueOptions;
+  content: AdjustImageDialogueContent;
 };
 
 export type DownloadDialogueOptions = DialogueOptions & {};
@@ -438,6 +472,7 @@ export type BaseConfig = {
     restrictedDialogue: RestrictedDialogue;
     settingsDialogue: SettingsDialogue;
     shareDialogue: ShareDialogue;
+    adjustImageDialogue: AdjustImageDialogue;
   };
   localisation: Localisation;
   content: Content;

@@ -1,4 +1,5 @@
 import {
+  AdjustImageDialogue,
   BaseConfig,
   CenterPanelContent,
   CenterPanelOptions,
@@ -20,8 +21,6 @@ import {
 import { ContentLeftPanel } from "../../config/ContentLeftPanel";
 
 type MultiSelectDialogueOptions = DialogueOptions & {
-  /** Determines if chunked resizing is enabled for gallery thumbnails */
-  galleryThumbChunkedResizingEnabled: boolean;
   /** Threshold for chunked resizing of gallery thumbnails */
   galleryThumbChunkedResizingThreshold: number;
   /** Height of the gallery thumbnail */
@@ -52,8 +51,6 @@ type PagingHeaderPanelOptions = HeaderPanelOptions & {
   autoCompleteBoxEnabled: boolean;
   /** Determines if gallery button is enabled */
   galleryButtonEnabled: boolean;
-  /** Determines if help is enabled */
-  helpEnabled: boolean;
   /** Determines if image selection box is enabled */
   imageSelectionBoxEnabled: boolean;
   /** Determines if mode options is enabled */
@@ -126,23 +123,26 @@ type OpenSeadragonCenterPanelOptions = CenterPanelOptions & {
   pageGap: number;
   /** Determines if home control is shown */
   showHomeControl: boolean;
-  /** Number of attributions to trim */
-  trimAttributionCount: number;
+  /** Determines if adjust image control is shown */
+  showAdjustImageControl: boolean;
   /** Ratio of visibility */
   visibilityRatio: number;
   /** The maximum amount of time in milliseconds an image operation can take */
   tileTimeout: number;
+  /** Whether to zoom in to first annotation on load */
+  zoomToInitialAnnotation: boolean;
 };
 
 type OpenSeadragonCenterPanelContent = CenterPanelContent & {
   attribution: string;
   goHome: string;
   imageUnavailable: string;
-  next: string;
-  previous: string;
+  nextImage: string;
+  previousImage: string;
   rotateRight: string;
   zoomIn: string;
   zoomOut: string;
+  adjustImage: string;
 };
 
 type OpenSeadragonCenterPanel = ModuleConfig & {
@@ -189,13 +189,21 @@ type SearchFooterPanel = ModuleConfig & {
   content: SearchFooterPanelContent;
 };
 
-type MobileFooterPanelOptions = FooterPanelOptions & {};
+type MobileFooterPanelOptions = FooterPanelOptions & {
+  helpEnabled: boolean;
+  helpUrl: string;
+};
 
 type MobileFooterPanelContent = FooterPanelContent & {
   rotateRight: string;
   moreInfo: string;
+  openLeftPanel: string;
+  closeLeftPanel: string;
+  openRightPanel: string;
+  closeRightPanel: string;
   zoomIn: string;
   zoomOut: string;
+  help: string;
 };
 
 type MobileFooterPanel = ModuleConfig & {
@@ -206,8 +214,6 @@ type MobileFooterPanel = ModuleConfig & {
 type OSDDownloadDialogueOptions = DownloadDialogueOptions & {
   /** Size of the confined image */
   confinedImageSize: number;
-  /** Percentage of the current view that is disabled */
-  currentViewDisabledPercentage: number;
   /** Determines if download of current view is enabled */
   downloadCurrentViewEnabled: boolean;
   /** Determines if download of whole image in high resolution is enabled */
@@ -216,8 +222,6 @@ type OSDDownloadDialogueOptions = DownloadDialogueOptions & {
   downloadWholeImageLowResEnabled: boolean;
   /** Maximum width of the image */
   maxImageWidth: number;
-  /** Determines if explanatory text for options is enabled */
-  optionsExplanatoryTextEnabled: boolean;
   /** Determines if selection is enabled */
   selectionEnabled: boolean;
 };
@@ -281,6 +285,7 @@ type Modules = {
   mobileFooterPanel: MobileFooterPanel;
   shareDialogue: OSDShareDialogue;
   settingsDialogue: OSDSettingsDialogue;
+  adjustImageDialogue: AdjustImageDialogue;
 };
 
 export type Config = BaseConfig & {

@@ -89,9 +89,9 @@ export class AuthDialogue extends Dialogue<
 
     super.open();
 
-    let header: string | null = this.service.getHeader();
-    let description: string | null = this.service.getDescription();
-    let confirmLabel: string | null = this.service.getConfirmLabel();
+    const header: string | null = this.service.getHeader();
+    const description: string | null = this.service.getDescription();
+    const confirmLabel: string | null = this.service.getConfirmLabel();
 
     if (header) {
       this.$title.text(sanitize(header));
@@ -101,7 +101,7 @@ export class AuthDialogue extends Dialogue<
       this.$message.html(sanitize(description));
       this.$message.targetBlank();
 
-      this.$message.find("a").on("click", function() {
+      this.$message.find("a").on("click", function () {
         const url: string = $(this).attr("href");
         this.extensionHost.publish(IIIFEvents.EXTERNAL_LINK_CLICKED, url);
       });

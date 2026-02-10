@@ -3,7 +3,7 @@ import { IIIFEvents } from "../../IIIFEvents";
 import { Dialogue } from "../uv-shared-module/Dialogue";
 import { DownloadOption } from "../uv-shared-module/DownloadOption";
 import { IRenderingOption } from "../uv-shared-module/IRenderingOption";
-import { Bools, Files, Strings } from "@edsilv/utils";
+import { Bools, Files, Strings } from "../../Utils";
 import {
   Annotation,
   AnnotationBody,
@@ -269,7 +269,8 @@ export class DownloadDialogue extends Dialogue<
   }
 
   updateTermsOfUseButton(): void {
-    const requiredStatement: ILabelValuePair | null = this.extension.helper.getRequiredStatement();
+    const requiredStatement: ILabelValuePair | null =
+      this.extension.helper.getRequiredStatement();
 
     if (
       Bools.getBool(
@@ -286,7 +287,7 @@ export class DownloadDialogue extends Dialogue<
   }
 
   getFileExtension(fileUri: string): string | null {
-    let extension: string = <string>fileUri.split(".").pop();
+    const extension: string = <string>fileUri.split(".").pop();
 
     // if it's not a valid file extension
     if (extension.length > 5 || extension.indexOf("/") !== -1) {

@@ -10,8 +10,8 @@ import {
   StatusCode,
   Utils,
 } from "manifesto.js";
-import { Storage, StorageType, StorageItem, Urls } from "@edsilv/utils";
-import * as HTTPStatusCode from "@edsilv/http-status-codes";
+import { Storage, StorageType, StorageItem, Urls } from "../../Utils";
+import { HTTPStatusCode } from "../../HTTPStatusCodes";
 import { Events } from "../../../../Events";
 
 export class Auth09 {
@@ -112,7 +112,7 @@ export class Auth09 {
               const win: Window | null = window.open(
                 resource.loginService.id + "?t=" + new Date().getTime()
               );
-              const pollTimer: number = window.setInterval(function() {
+              const pollTimer: number = window.setInterval(function () {
                 if (win && win.closed) {
                   window.clearInterval(pollTimer);
                   Auth09.publish(IIIFEvents.LOGIN);
@@ -126,7 +126,7 @@ export class Auth09 {
               const win: Window | null = window.open(
                 resource.logoutService.id + "?t=" + new Date().getTime()
               );
-              const pollTimer: number = window.setInterval(function() {
+              const pollTimer: number = window.setInterval(function () {
                 if (win && win.closed) {
                   window.clearInterval(pollTimer);
                   Auth09.publish(IIIFEvents.LOGOUT);
@@ -215,8 +215,9 @@ export class Auth09 {
         foundItems.push(item);
       } else {
         // find an access token for the domain
-        const domain: string = Urls.getUrlParts(<string>resource.dataUri)
-          .hostname;
+        const domain: string = Urls.getUrlParts(
+          <string>resource.dataUri
+        ).hostname;
         const items: StorageItem[] = Storage.getItems(storageStrategy);
 
         for (let i = 0; i < items.length; i++) {

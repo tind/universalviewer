@@ -5,8 +5,6 @@ import svg from "esbuild-plugin-svg";
 import fs from "fs";
 import LessPluginCleanCSS from "less-plugin-clean-css";
 
-const watch = process.argv[2] === "--watch";
-
 const pkg = JSON.parse(fs.readFileSync("./package.json").toString());
 
 // These are NPM packages that don't work with external bundlers without configuration.
@@ -15,8 +13,7 @@ const bundledPackages = [
   "jquery",
   "jsviews",
   "xss",
-  "@iiif/vocabulary",
-  "@edsilv/jquery-plugins",
+  "@iiif/vocabulary"
 ];
 
 // This plugin will ensure that mediaelement css is loaded correctly. It's currently using a webpack specific
@@ -44,7 +41,6 @@ async function main() {
     target: "es2020",
     format: "esm",
     globalName: "UV",
-    watch,
     minify: true,
     external: [
       ...Object.keys(pkg.dependencies).filter(

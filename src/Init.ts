@@ -2,7 +2,6 @@ import { Events } from "./Events";
 import { UniversalViewer } from "./UniversalViewer";
 
 export const init = (el: string | HTMLDivElement, data) => {
-  let uv;
   let isFullScreen = false;
   let overrideFullScreen = false;
   const container = typeof el === "string" ? document.getElementById(el) : el;
@@ -18,41 +17,43 @@ export const init = (el: string | HTMLDivElement, data) => {
   const uvDiv = document.createElement("div");
   parent.appendChild(uvDiv);
 
+  const uv = new UniversalViewer({
+    target: uvDiv,
+    data: data,
+  });
+
   const resize = () => {
-    if (uv) {
-      if (isFullScreen && !overrideFullScreen) {
-        // is full screen and not overridden.
-        parent.style.width = window.innerWidth + "px";
-        parent.style.height = window.innerHeight + "px";
-      } else {
-        // either we're not full screen or scaling to the window size is overridden
-        parent.style.width = container.offsetWidth + "px";
-        parent.style.height = container.offsetHeight + "px";
-      }
-      uv.resize();
+    if (!uv) {
+      return;
     }
+
+    if (isFullScreen && !overrideFullScreen) {
+      // is full screen and not overridden.
+      parent.style.width = window.innerWidth + "px";
+      parent.style.height = window.innerHeight + "px";
+    } else {
+      // either we're not full screen or scaling to the window size is overridden
+      parent.style.width = container.offsetWidth + "px";
+      parent.style.height = container.offsetHeight + "px";
+    }
+    uv.resize();
   };
 
-  window.addEventListener("resize", function() {
+  window.addEventListener("resize", function () {
     resize();
   });
 
-  window.addEventListener("orientationchange", function() {
-    setTimeout(function() {
+  window.addEventListener("orientationchange", function () {
+    setTimeout(function () {
       resize();
     }, 100);
-  });
-
-  uv = new UniversalViewer({
-    target: uvDiv,
-    data: data,
   });
 
   // todo: can we remove the following two event listeners
   // by using css to scale the parent div?
   uv.on(
     Events.CREATED,
-    function(_obj) {
+    function (_obj) {
       resize();
     },
     false
@@ -60,8 +61,8 @@ export const init = (el: string | HTMLDivElement, data) => {
 
   uv.on(
     Events.EXTERNAL_RESOURCE_OPENED,
-    function(_obj) {
-      setTimeout(function() {
+    function (_obj) {
+      setTimeout(function () {
         resize();
       }, 100);
     },
@@ -70,7 +71,7 @@ export const init = (el: string | HTMLDivElement, data) => {
 
   uv.on(
     Events.TOGGLE_FULLSCREEN,
-    function(data) {
+    function (data) {
       isFullScreen = data.isFullScreen;
       overrideFullScreen = data.overrideFullScreen;
 
@@ -93,7 +94,7 @@ export const init = (el: string | HTMLDivElement, data) => {
         }
       }
 
-      setTimeout(function() {
+      setTimeout(function () {
         resize();
       }, 100);
     },
@@ -102,7 +103,7 @@ export const init = (el: string | HTMLDivElement, data) => {
 
   uv.on(
     Events.ERROR,
-    function(message) {
+    function (message) {
       console.error(message);
     },
     false

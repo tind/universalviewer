@@ -19,10 +19,10 @@ type ContentLeftPanelOptions = ExpandPanelOptions & {
   branchNodesSelectable: boolean;
   /** Determines if tree is the default view */
   defaultToTreeEnabled: boolean;
-  /** Number of items to default to tree view */
+  /** Number of items to default to tree view (when defaultToTreeEnabled = true; defaults to 0) */
   defaultToTreeIfGreaterThan: number;
-  /** Number of characters to elide at */
-  elideCount: number;
+  /** Determines if collection should default to tree view (even if defaultToTreeEnabled = false) */
+  defaultToTreeIfCollection: boolean;
   /** Threshold for gallery thumb chunked resizing */
   galleryThumbChunkedResizingThreshold: number;
   /** Height of the gallery thumbnail */

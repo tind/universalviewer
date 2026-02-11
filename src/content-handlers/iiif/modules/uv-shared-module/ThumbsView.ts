@@ -6,8 +6,8 @@ import {
   ViewingDirection,
 } from "@iiif/vocabulary/dist-commonjs/";
 import { Annotation, AnnotationBody, Canvas, Thumb } from "manifesto.js";
-import * as KeyCodes from "@edsilv/key-codes";
-import { Dates, Keyboard, Maths, Strings } from "@edsilv/utils";
+import * as KeyCodes from "../../KeyCodes";
+import { Dates, Keyboard, Maths, Strings } from "../../Utils";
 import { ExtendedLeftPanel } from "../../extensions/config/ExtendedLeftPanel";
 
 export class ThumbsView<T extends ExtendedLeftPanel> extends BaseView<T> {
@@ -56,28 +56,28 @@ export class ThumbsView<T extends ExtendedLeftPanel> extends BaseView<T> {
     $.templates({
       thumbsTemplate:
         '<a id="thumb{{>index}}" class="{{:~className()}}" data-src="{{>uri}}" data-visible="{{>visible}}" data-index="{{>index}}" tabindex="0">\
-                                <div class="wrap" style="height:{{>height + ~extraHeight()}}px"></div>\
-                                <div class="info">\
-                                    <span class="index">{{:#index + 1}}</span>\
-                                    <span class="label" title="{{>label}}">{{>label}}&nbsp;</span>\
-                                    <span class="searchResults" title="{{:~searchResultsTitle()}}">{{>data.searchResults}}</span>\
-                                </div>\
-                             </a>\
-                             {{if ~separator()}} \
-                                 <div class="separator"></div> \
-                             {{/if}}',
+          <div class="wrap" style="height:{{>height + ~extraHeight()}}px"></div>\
+          <div class="info">\
+            <span class="index">{{:#index + 1}}</span>\
+            <span class="label" title="{{>label}}" style="white-space: normal;">{{>label}}&nbsp;</span>\
+            <span class="searchResults" title="{{:~searchResultsTitle()}}">{{>data.searchResults}}</span>\
+          </div>\
+        </a>\
+        {{if ~separator()}} \
+          <div class="separator"></div> \
+        {{/if}}',
     });
 
     const extraHeight: number = this.options.thumbsExtraHeight;
 
     $.views.helpers({
-      separator: function() {
+      separator: function () {
         return false;
       },
-      extraHeight: function() {
+      extraHeight: function () {
         return extraHeight;
       },
-      className: function() {
+      className: function () {
         let className: string = "thumb";
 
         if (this.data.index === 0) {
@@ -88,7 +88,8 @@ export class ThumbsView<T extends ExtendedLeftPanel> extends BaseView<T> {
           className += " placeholder";
         }
 
-        const viewingDirection: ViewingDirection | null = that.extension.helper.getViewingDirection();
+        const viewingDirection: ViewingDirection | null =
+          that.extension.helper.getViewingDirection();
 
         if (
           viewingDirection &&
@@ -104,7 +105,7 @@ export class ThumbsView<T extends ExtendedLeftPanel> extends BaseView<T> {
 
         return className;
       },
-      searchResultsTitle: function() {
+      searchResultsTitle: function () {
         const searchResults: number = Number(this.data.data.searchResults);
 
         if (searchResults) {
@@ -153,7 +154,7 @@ export class ThumbsView<T extends ExtendedLeftPanel> extends BaseView<T> {
     if (!this.thumbs) return;
 
     // get median height
-    let heights: number[] = [];
+    const heights: number[] = [];
 
     for (let i = 0; i < this.thumbs.length; i++) {
       const thumb: Thumb = this.thumbs[i];
@@ -171,7 +172,7 @@ export class ThumbsView<T extends ExtendedLeftPanel> extends BaseView<T> {
 
     this.$thumbs.undelegate(".thumb", "click");
 
-    this.$thumbs.delegate(".thumb", "click", function(e) {
+    this.$thumbs.delegate(".thumb", "click", function (e) {
       e.preventDefault();
       const data = $.view(this).data;
       that.lastThumbClickedIndex = data.index;
@@ -180,7 +181,7 @@ export class ThumbsView<T extends ExtendedLeftPanel> extends BaseView<T> {
     });
 
     // Support keyboard navigation (spacebar / enter)
-    this.$thumbs.delegate(".thumb", "keydown", function(e: JQueryEventObject) {
+    this.$thumbs.delegate(".thumb", "keydown", function (e: JQueryEventObject) {
       const originalEvent: KeyboardEvent = <KeyboardEvent>e.originalEvent;
       const charCode: number = Keyboard.getCharCode(originalEvent);
       if (
@@ -276,18 +277,14 @@ export class ThumbsView<T extends ExtendedLeftPanel> extends BaseView<T> {
           // fade in on load.
           $img.hide();
 
-          $img.on("load", function() {
-            $(this).fadeIn(fadeDuration, function() {
-              $(this)
-                .parent()
-                .switchClass("loading", "loaded");
+          $img.on("load", function () {
+            $(this).fadeIn(fadeDuration, function () {
+              $(this).parent().switchClass("loading", "loaded");
             });
           });
 
-          $img.on("error", function() {
-            $(this)
-              .parent()
-              .switchClass("loading", "loadingFailed");
+          $img.on("error", function () {
+            $(this).parent().switchClass("loading", "loadingFailed");
           });
 
           $wrap.append($img);
@@ -324,12 +321,8 @@ export class ThumbsView<T extends ExtendedLeftPanel> extends BaseView<T> {
   }
 
   setLabel(): void {
-    $(this.$thumbs)
-      .find("span.index")
-      .hide();
-    $(this.$thumbs)
-      .find("span.label")
-      .show();
+    $(this.$thumbs).find("span.index").hide();
+    $(this.$thumbs).find("span.label").show();
   }
 
   addSelectedClassToThumbs(index: number): void {
@@ -373,5 +366,9 @@ export class ThumbsView<T extends ExtendedLeftPanel> extends BaseView<T> {
 
   resize(): void {
     super.resize();
+
+    setTimeout(() => {
+      this.$element.width("100%");
+    }, 1);
   }
 }

@@ -2,7 +2,7 @@ const $ = window.$;
 import { IIIFEvents } from "../../IIIFEvents";
 import { CenterPanel } from "../uv-shared-module/CenterPanel";
 import { PDFExtensionEvents } from "../../extensions/uv-pdf-extension/Events";
-import { Bools } from "@edsilv/utils";
+import { Bools } from "../../Utils";
 import { AnnotationBody, Canvas, IExternalResource } from "manifesto.js";
 import { Events } from "../../../../Events";
 import { loadScripts } from "../../../../Utils";
@@ -24,8 +24,6 @@ export class PDFCenterPanel extends CenterPanel<
   private _canvas: HTMLCanvasElement;
   private _ctx: any;
   private _lastMediaUri: string | null = null;
-  private _maxScale = 5;
-  private _minScale = 0.7;
   private _nextButtonEnabled: boolean = false;
   private _pageIndex: number = 1;
   private _pageIndexPending: number | null = null;
@@ -41,6 +39,24 @@ export class PDFCenterPanel extends CenterPanel<
     super($element);
   }
 
+  private _getDecreasedScale(): number {
+    return this._scale > 0.5 ? this._scale - 0.5 : this._scale / 1.5;
+  }
+
+  private _getIncreasedScale(): number {
+    return this._scale >= 0.5 ? this._scale + 0.5 : this._scale * 1.5;
+  }
+
+  private _getMinScale(): number {
+    const minScale = Number(this.options.minScale);
+    return minScale > 0 ? minScale : 0.7;
+  }
+
+  private _getMaxScale(): number {
+    const maxScale = Number(this.options.maxScale);
+    return maxScale > 0 ? maxScale : 5;
+  }
+
   create(): void {
     this.setConfig("pdfCenterPanel");
 
@@ -52,10 +68,28 @@ export class PDFCenterPanel extends CenterPanel<
     this._$progress = $('<progress max="100" value="0"></progress>');
     this._canvas = <HTMLCanvasElement>this._$canvas[0];
     this._ctx = this._canvas.getContext("2d");
-    this._$prevButton = $('<div class="btn prev" tabindex="0"></div>');
-    this._$nextButton = $('<div class="btn next" tabindex="0"></div>');
-    this._$zoomInButton = $('<div class="btn zoomIn" tabindex="0"></div>');
-    this._$zoomOutButton = $('<div class="btn zoomOut" tabindex="0"></div>');
+    this._$prevButton = $(
+      `<button class="btn btn-default paging prev" title="${this.content.previous}">
+        <i class="uv-icon-prev" aria-hidden="true"></i>
+        <span class="sr-only">${this.content.previous}</span>
+      </button>`
+    );
+    this._$nextButton = $(
+      `<button class="btn btn-default paging next" title="${this.content.next}">
+        <i class="uv-icon-next" aria-hidden="true"></i>
+        <span class="sr-only">${this.content.next}</span>
+      </button>`
+    );
+    this._$zoomInButton = $(
+      '<button class="btn zoomIn" tabindex="0"></button>'
+    );
+    this._$zoomInButton.attr("title", this.content.zoomIn);
+    this._$zoomInButton.attr("aria-label", this.content.zoomIn);
+    this._$zoomOutButton = $(
+      '<button class="btn zoomOut" tabindex="0"></button>'
+    );
+    this._$zoomOutButton.attr("title", this.content.zoomOut);
+    this._$zoomOutButton.attr("aria-label", this.content.zoomOut);
 
     // Only attach PDF controls if we're using PDF.js; they have no meaning in
     // PDFObject. However, we still create the objects above so that references
@@ -155,6 +189,30 @@ export class PDFCenterPanel extends CenterPanel<
       }
     );
 
+    this.extensionHost.subscribe(PDFExtensionEvents.ZOOM_IN, () => {
+      const newScale: number = this._getIncreasedScale();
+      const maxScale: number = this._getMaxScale();
+      if (newScale < maxScale) {
+        this._scale = newScale;
+      } else {
+        this._scale = maxScale;
+      }
+
+      this._render(this._pageIndex);
+    });
+
+    this.extensionHost.subscribe(PDFExtensionEvents.ZOOM_OUT, () => {
+      const newScale: number = this._getDecreasedScale();
+      const minScale: number = this._getMinScale();
+      if (newScale > minScale) {
+        this._scale = newScale;
+      } else {
+        this._scale = minScale;
+      }
+
+      this._render(this._pageIndex);
+    });
+
     this._$prevButton.onPressed((e: any) => {
       e.preventDefault();
 
@@ -175,32 +233,12 @@ export class PDFCenterPanel extends CenterPanel<
 
     this.disableNextButton();
 
-    this._$zoomInButton.onPressed((e: any) => {
-      e.preventDefault();
-
-      const newScale: number = this._scale + 0.5;
-
-      if (newScale < this._maxScale) {
-        this._scale = newScale;
-      } else {
-        this._scale = this._maxScale;
-      }
-
-      this._render(this._pageIndex);
+    this.onAccessibleClick(this._$zoomInButton, () => {
+      this.extensionHost.publish(PDFExtensionEvents.ZOOM_IN);
     });
 
-    this._$zoomOutButton.onPressed((e: any) => {
-      e.preventDefault();
-
-      const newScale: number = this._scale - 0.5;
-
-      if (newScale > this._minScale) {
-        this._scale = newScale;
-      } else {
-        this._scale = this._minScale;
-      }
-
-      this._render(this._pageIndex);
+    this.onAccessibleClick(this._$zoomOutButton, () => {
+      this.extensionHost.publish(PDFExtensionEvents.ZOOM_OUT);
     });
   }
 
@@ -250,10 +288,9 @@ export class PDFCenterPanel extends CenterPanel<
     await this.extension.getExternalResources(resources);
 
     let mediaUri: string | null = null;
-    let canvas: Canvas = this.extension.helper.getCurrentCanvas();
-    const formats: AnnotationBody[] | null = this.extension.getMediaFormats(
-      canvas
-    );
+    const canvas: Canvas = this.extension.helper.getCurrentCanvas();
+    const formats: AnnotationBody[] | null =
+      this.extension.getMediaFormats(canvas);
     const pdfUri: string = canvas.id;
 
     if (formats && formats.length) {
@@ -328,14 +365,22 @@ export class PDFCenterPanel extends CenterPanel<
     this._$zoomOutButton.enable();
     this._$zoomInButton.enable();
 
-    //disable zoom if not possible
-    const lowScale: number = this._scale - 0.5;
-    const highScale: number = this._scale + 0.5;
-    if (lowScale < this._minScale) {
+    // disable zoom if not possible
+    const lowScale: number = this._getDecreasedScale();
+    const highScale: number = this._getIncreasedScale();
+    if (lowScale < this._getMinScale()) {
       this._$zoomOutButton.disable();
     }
-    if (highScale > this._maxScale) {
+    if (highScale > this._getMaxScale()) {
       this._$zoomInButton.disable();
+    }
+
+    if (this.extension.isMetric("sm")) {
+      this._$zoomOutButton.hide();
+      this._$zoomInButton.hide();
+    } else {
+      this._$zoomOutButton.show();
+      this._$zoomInButton.show();
     }
 
     //this._pdfDoc.getPage(num).then((page: any) => {

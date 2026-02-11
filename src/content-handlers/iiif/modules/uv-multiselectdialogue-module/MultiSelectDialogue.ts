@@ -3,8 +3,8 @@ import { IIIFEvents } from "../../IIIFEvents";
 import { Dialogue } from "../uv-shared-module/Dialogue";
 import OpenSeadragonExtension from "../../extensions/uv-openseadragon-extension/Extension";
 import { Mode } from "../../extensions/uv-openseadragon-extension/Mode";
-import { Bools } from "@edsilv/utils";
-import { GalleryComponent } from "@iiif/iiif-gallery-component";
+import { Bools } from "../../Utils";
+import { GalleryComponent } from "../uv-shared-module/GalleryComponent";
 // import { GalleryComponent } from "../../GalleryComponent";
 import { MultiSelectState } from "@iiif/manifold";
 import { Config } from "../../extensions/uv-openseadragon-extension/config/Config";
@@ -33,14 +33,16 @@ export class MultiSelectDialogue extends Dialogue<
 
     this.extensionHost.subscribe(this.openCommand, () => {
       this.open();
-      const multiSelectState: MultiSelectState = this.extension.helper.getMultiSelectState();
+      const multiSelectState: MultiSelectState =
+        this.extension.helper.getMultiSelectState();
       multiSelectState.setEnabled(true);
       this.galleryComponent.set(this.data);
     });
 
     this.extensionHost.subscribe(this.closeCommand, () => {
       this.close();
-      const multiSelectState: MultiSelectState = this.extension.helper.getMultiSelectState();
+      const multiSelectState: MultiSelectState =
+        this.extension.helper.getMultiSelectState();
       multiSelectState.setEnabled(false);
     });
 
@@ -53,8 +55,8 @@ export class MultiSelectDialogue extends Dialogue<
 
     this.data = {
       helper: this.extension.helper,
-      chunkedResizingThreshold: this.config.options
-        .galleryThumbChunkedResizingThreshold,
+      chunkedResizingThreshold:
+        this.config.options.galleryThumbChunkedResizingThreshold,
       content: this.config.content,
       debug: false,
       imageFadeInDuration: 300,

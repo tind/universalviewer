@@ -8,7 +8,7 @@ import { IIIFEvents } from "../../IIIFEvents";
 import { CenterPanel } from "../uv-shared-module/CenterPanel";
 import { ModelViewerExtensionEvents } from "../../extensions/uv-model-viewer-extension/Events";
 import { Orbit } from "../../extensions/uv-model-viewer-extension/Orbit";
-import { Async } from "@edsilv/utils";
+import { Async } from "../../Utils";
 import { AnnotationGroup } from "@iiif/manifold";
 import ModelViewerExtension from "../../extensions/uv-model-viewer-extension/Extension";
 import { Events } from "../../../../Events";
@@ -121,8 +121,9 @@ export class ModelViewerCenterPanel extends CenterPanel<
     // clear existing annotations
     this.clearAnnotations();
 
-    const annotationGroups: AnnotationGroup[] | null = (this
-      .extension as ModelViewerExtension).annotations;
+    const annotationGroups: AnnotationGroup[] | null = (
+      this.extension as ModelViewerExtension
+    ).annotations;
 
     annotationGroups.forEach((annoGroup) => {
       annoGroup.points3D.forEach((point, index) => {
@@ -170,10 +171,9 @@ export class ModelViewerCenterPanel extends CenterPanel<
     await this.extension.getExternalResources(resources);
 
     let mediaUri: string | null = null;
-    let canvas: Canvas = this.extension.helper.getCurrentCanvas();
-    const formats: AnnotationBody[] | null = this.extension.getMediaFormats(
-      canvas
-    );
+    const canvas: Canvas = this.extension.helper.getCurrentCanvas();
+    const formats: AnnotationBody[] | null =
+      this.extension.getMediaFormats(canvas);
 
     if (formats && formats.length) {
       mediaUri = formats[0].id;

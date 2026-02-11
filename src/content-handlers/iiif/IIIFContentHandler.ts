@@ -97,11 +97,13 @@ const Extension: IExtensionRegistry = {
   },
 };
 
-export default class IIIFContentHandler extends BaseContentHandler<IIIFData>
-  implements IIIFExtensionHost, IContentHandler<IIIFData> {
+export default class IIIFContentHandler
+  extends BaseContentHandler<IIIFData>
+  implements IIIFExtensionHost, IContentHandler<IIIFData>
+{
   private _extensionRegistry: IExtensionRegistry;
   private _pubsub: PubSub;
-  public extension: IExtension | null;
+  public extension: IExtension | undefined;
   public isFullScreen: boolean = false;
   public disposed = false;
   private extra = { initial: false };
@@ -132,6 +134,7 @@ export default class IIIFContentHandler extends BaseContentHandler<IIIFData>
     this._extensionRegistry[ExternalResourceType.SOUND] =
       Extension.MEDIAELEMENT;
     this._extensionRegistry[MediaType.AUDIO_MP4] = Extension.AV;
+    this._extensionRegistry[MediaType.AUDIO_OGG] = Extension.AV;
     this._extensionRegistry[MediaType.DICOM] = Extension.ALEPH;
     this._extensionRegistry[MediaType.DRACO] = Extension.MODELVIEWER;
     this._extensionRegistry[MediaType.EPUB] = Extension.EBOOK;
@@ -140,11 +143,14 @@ export default class IIIFContentHandler extends BaseContentHandler<IIIFData>
     this._extensionRegistry[MediaType.GLTF] = Extension.MODELVIEWER;
     this._extensionRegistry[MediaType.JPG] = Extension.OSD;
     this._extensionRegistry[MediaType.MP3] = Extension.AV;
+    this._extensionRegistry[MediaType.MPEG] = Extension.AV;
     this._extensionRegistry[MediaType.MPEG_DASH] = Extension.AV;
     this._extensionRegistry[MediaType.OPF] = Extension.EBOOK;
     this._extensionRegistry[MediaType.PDF] = Extension.PDF;
+    this._extensionRegistry[MediaType.PNG] = Extension.OSD;
     this._extensionRegistry[MediaType.USDZ] = Extension.MODELVIEWER;
     this._extensionRegistry[MediaType.VIDEO_MP4] = Extension.AV;
+    this._extensionRegistry[MediaType.VIDEO_OGG] = Extension.AV;
     this._extensionRegistry[MediaType.WAV] = Extension.AV;
     this._extensionRegistry[MediaType.WEBM] = Extension.AV;
     this._extensionRegistry[RenderingFormat.PDF] = Extension.PDF;
@@ -177,10 +183,6 @@ export default class IIIFContentHandler extends BaseContentHandler<IIIFData>
     type: ExtensionLoader,
     format?: string
   ): Promise<any> {
-    // previously: /* webpackChunkName: "uv-av-extension" */ /* webpackMode: "lazy" */ "./extensions/uv-av-extension/Extension"
-    // const m = (await import(
-    //   /* webpackMode: "lazy" */ `./extensions/${name}/Extension`
-    // )) as any;
     const m = await type.loader();
     const extension: IExtension = new m.default();
     extension.format = format;
@@ -262,15 +264,28 @@ export default class IIIFContentHandler extends BaseContentHandler<IIIFData>
   }
 
   public dispose() {
-    // console.log("dispose IIIFContentHandler");
     super.dispose();
     this._pubsub.dispose();
     this.extension?.dispose();
     this.disposed = true;
-    // const $elem: JQuery = $(this.options.target);
-    // $elem.empty();
-    // remove all classes
-    // $elem.attr("class", "");
+  }
+
+  private async _loadAndApplyConfigToExtension(
+    that: IIIFContentHandler,
+    data: IUVData<any>,
+    extension: any
+  ): Promise<void> {
+    // import the config file
+    if (!data.locales) {
+      data.locales = [];
+      data.locales.push(defaultLocale);
+    }
+    const config = await extension.loadConfig(
+      data.locales[0].name,
+      extension?.type.name
+    );
+
+    data.config = await that.configure(config);
   }
 
   private async _reload(data: IUVData<any>): Promise<void> {
@@ -312,9 +327,7 @@ export default class IIIFContentHandler extends BaseContentHandler<IIIFData>
         window.trackingLabel = trackingLabel;
       }
 
-      let canvas: Canvas | undefined;
-
-      canvas = helper.getCurrentCanvas();
+      const canvas: Canvas | undefined = helper.getCurrentCanvas();
 
       if (!canvas) {
         that._error(`Canvas ${data.canvasIndex} not found.`);
@@ -367,38 +380,35 @@ export default class IIIFContentHandler extends BaseContentHandler<IIIFData>
         }
       }
 
-      // if using uv-av-extension and there is no structure, fall back to uv-mediaelement-extension
+      await this._loadAndApplyConfigToExtension(that, data, extension);
+
+      // if using uv-av-extension and there is no structure,
+      // or the preferMediaElementExtension config is set
+      // fall back to uv-mediaelement-extension
       const hasRanges: boolean = helper.getRanges().length > 0;
 
-      if (extension!.type === Extension.AV && !hasRanges) {
+      if (
+        extension!.type === Extension.AV &&
+        (!hasRanges || data.config.options.preferMediaElementExtension)
+      ) {
         extension = await that._getExtensionByType(
           Extension.MEDIAELEMENT,
           format
         );
+        await this._loadAndApplyConfigToExtension(that, data, extension);
       }
 
       // if there still isn't a matching extension, use the default extension.
       if (!extension) {
         extension = await that._getExtensionByFormat(Extension.DEFAULT.name);
+        await this._loadAndApplyConfigToExtension(that, data, extension);
       }
-
-      if (!data.locales) {
-        data.locales = [];
-        data.locales.push(defaultLocale);
-      }
-
-      // import the config file
-      let config = await (extension as any).loadConfig(
-        data.locales[0].name,
-        extension?.type.name
-      );
-
-      data.config = await that.configure(config);
 
       that._createExtension(extension, data, helper);
     } catch (e) {
       this.hideSpinner();
       alert("Unable to load manifest");
+      console.error(e);
     }
   }
 

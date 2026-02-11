@@ -2,10 +2,13 @@ const $ = window.$;
 import { IIIFEvents } from "../../IIIFEvents";
 import { RightPanel } from "../uv-shared-module/RightPanel";
 import { sanitize } from "../../../../Utils";
-import { Bools, Urls } from "@edsilv/utils";
+import { Bools, Urls } from "../../Utils";
 import { Range } from "manifesto.js";
 import { UriLabeller } from "@iiif/manifold";
-import { MetadataComponent, LimitType } from "@iiif/iiif-metadata-component";
+import {
+  MetadataComponent,
+  LimitType,
+} from "../uv-shared-module/MetadataComponent";
 import { MoreInfoRightPanel as MoreInfoRightPanelConfig } from "../../BaseConfig";
 
 export class MoreInfoRightPanel extends RightPanel<MoreInfoRightPanelConfig> {
@@ -33,7 +36,7 @@ export class MoreInfoRightPanel extends RightPanel<MoreInfoRightPanelConfig> {
 
     this.setTitle(this.config.content.title);
 
-    this.$metadata = $('<div class="iiif-metadata-component"></div>');
+    this.$metadata = $('<article class="iiif-metadata-component"></article>');
     this.$main.append(this.$metadata);
 
     this.metadataComponent = new MetadataComponent({
@@ -53,9 +56,8 @@ export class MoreInfoRightPanel extends RightPanel<MoreInfoRightPanelConfig> {
         const time: string | null = Urls.getHashParameterFromString("t", href);
 
         if (rangeId && time === null) {
-          const range: Range | null = this.extension.helper.getRangeById(
-            rangeId
-          );
+          const range: Range | null =
+            this.extension.helper.getRangeById(rangeId);
 
           if (range) {
             this.extensionHost.publish(IIIFEvents.RANGE_CHANGE, range);
@@ -67,9 +69,8 @@ export class MoreInfoRightPanel extends RightPanel<MoreInfoRightPanelConfig> {
           if (!Number.isNaN(timeAsNumber)) {
             if (rangeId) {
               // We want to make the time change RELATIVE to the start of the range.
-              const range: Range | null = this.extension.helper.getRangeById(
-                rangeId
-              );
+              const range: Range | null =
+                this.extension.helper.getRangeById(rangeId);
               if (range) {
                 this.extensionHost.publish(IIIFEvents.RANGE_TIME_CHANGE, {
                   rangeId: range.id,
@@ -141,5 +142,18 @@ export class MoreInfoRightPanel extends RightPanel<MoreInfoRightPanelConfig> {
     this.$main.height(
       this.$element.height() - this.$top.height() - this.$main.verticalMargins()
     );
+
+    // always put tabindex on, so the main is focusable,
+    // just in case there's something wrong with the height
+    // comparison below
+    this.$main.attr("tabindex", 0);
+    this.$main.attr("aria-label", this.config.content.title);
+
+    // if metadata's height lte main's, no scroll, so no focus needed
+    // and no aria label either
+    if (this.$metadata.height() <= this.$main.height()) {
+      this.$main.removeAttr("tabindex");
+      this.$main.removeAttr("aria-label");
+    }
   }
 }

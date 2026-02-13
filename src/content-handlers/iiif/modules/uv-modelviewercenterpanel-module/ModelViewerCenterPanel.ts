@@ -209,7 +209,12 @@ export class ModelViewerCenterPanel extends CenterPanel<
     this._threeScene.background = new THREE.Color(0x222222);
 
     // Camera
-    this._threeCamera = new THREE.PerspectiveCamera(45, width / height, 0.1, 1000);
+    this._threeCamera = new THREE.PerspectiveCamera(
+      45,
+      width / height,
+      0.1,
+      1000
+    );
 
     // Renderer
     this._threeRenderer = new THREE.WebGLRenderer({ antialias: true });
@@ -241,12 +246,7 @@ export class ModelViewerCenterPanel extends CenterPanel<
     const loader = new OBJLoader();
     try {
       const obj = await new Promise<THREE.Group>((resolve, reject) => {
-        loader.load(
-          mediaUri,
-          resolve,
-          undefined,
-          reject
-        );
+        loader.load(mediaUri, resolve, undefined, reject);
       });
 
       // Apply a default material since OBJ files without MTL have no material

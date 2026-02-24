@@ -39,6 +39,11 @@
 
           .border-radius(0);
 
+          &:focus-visible {
+            outline: 2px solid @link-color;
+            outline-offset: -2px;
+          }
+
           &.vertical {
             height: 30px;
             width: 90px;
@@ -268,5 +273,10 @@
 
   .openseadragon-canvas {
     outline: none;
+
+    &:focus-visible {
+      outline: 2px solid @link-color;
+      outline-offset: -2px;
+    }
   }
 }

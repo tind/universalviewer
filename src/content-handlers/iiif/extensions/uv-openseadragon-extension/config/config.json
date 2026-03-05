@@ -278,7 +278,7 @@
       },
       "content": {
         "close": "$close",
-        "select": "$download",
+        "download": "$download",
         "selectAll": "$selectAll",
         "title": "$selectPagesForDownload"
       }
@@ -372,6 +372,7 @@
         "closeAttribution": "$closeAttribution",
         "goHome": "$goHome",
         "imageUnavailable": "$imageUnavailable",
+        "mediaViewer": "$mediaViewer",
         "nextImage": "$nextImage",
         "previousImage": "$previousImage",
         "rotateRight": "$rotateRight",

@@ -1,4 +1,4 @@
-const $ = require("jquery");
+const $ = window.$;
 import { SettingsDialogue as BaseSettingsDialogue } from "../../modules/uv-dialogues-module/SettingsDialogue";
 import config from "./config/config.json";
 

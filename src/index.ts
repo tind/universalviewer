@@ -1,4 +1,4 @@
-import "./shim-jquery";
+// import "./shim-jquery";
 export { ContentType } from "./ContentType";
 export {
   URLAdapter as IIIFURLAdapter,

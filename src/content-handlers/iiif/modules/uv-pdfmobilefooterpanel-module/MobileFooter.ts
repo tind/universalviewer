@@ -1,4 +1,4 @@
-const $ = require("jquery");
+const $ = window.$;
 import { Config } from "../../extensions/uv-pdf-extension/config/Config";
 import { PDFExtensionEvents } from "../../extensions/uv-pdf-extension/Events";
 import { FooterPanel as BaseFooterPanel } from "../uv-shared-module/FooterPanel";

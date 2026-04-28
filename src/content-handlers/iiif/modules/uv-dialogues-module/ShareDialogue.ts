@@ -1,4 +1,4 @@
-const $ = require("jquery");
+const $ = window.$;
 import { Bools, Clipboard, Numbers } from "../../Utils";
 import type { ILabelValuePair } from "@iiif/manifold";
 import type { BaseConfig } from "../../BaseConfig";

@@ -1,3 +1,50 @@
+# TIND Universal Viewer
+
+TIND Universal Viewer is a fork of [Universal Viewer](https://github.com/UniversalViewer/universalviewer). It contains the following changes:
+
+- Removes bundled jQuery by changing all occurrences of `require("jquery")` with `window.$`.
+- Removes GitHub Workflows.
+
+## Publishing
+
+Publishing is done manually. Here is how.
+
+1. Make sure you are on the latest `develop` branch
+
+    ```shell
+    git checkout develop
+    git fetch
+    git reset --hard origin/develop
+    ```
+
+2. Bump the version. Note: this creates and tags a commit which should be pushed.
+
+    ```shell
+    npm version prerelease --preid=alpha
+    git push origin develop
+    ```
+
+3. Install NPM dependencies
+
+    ```shell
+    npm ci
+    ```
+
+4. Build the assets
+
+    ```shell
+    npm run build && npm run build-tsc && npm run build-es
+    ```
+
+5. Publish
+
+    ```shell
+    export NPM_TOKEN=<your token here>
+    npm publish --access public --otp <2fa one time code here>
+    ```
+
+----
+
 <p align="center">
 <img src="https://avatars0.githubusercontent.com/u/9430521" style="width: 150px;" />
 <h1 align="center" style="width: 60%; margin-left: auto; margin-right: auto;">Universal Viewer</h1>
@@ -22,25 +69,27 @@ A community-developed open source project on a mission<br/> to help you share yo
 
 # The Universal Viewer (UV) is a community-developed open source project. Our mission is to help you share your content with the world
 
-The UV software can display images, 3D files and PDFs, play audio and video files, and more. 
+The UV software can display images, 3D files and PDFs, play audio and video files, and more.
 
 <br/>
 
     npm install universalviewer --save
 
 <br/>
-    
+
 > Please note that UV v4 is designed to work on [evergreen browsers](https://www.w3.org/2001/tag/doc/evergreen-web/). If you need IE11 support, please use [UV v3](https://github.com/UniversalViewer/universalviewer/tree/v3).
 > Microsoft no longer supports IE11, and it [reached end-of-life on June 15 2022](https://blogs.windows.com/windowsexperience/2021/05/19/the-future-of-internet-explorer-on-windows-10-is-in-microsoft-edge/).
 
 <br/>
 
-- [**Website**](#-website)
-- [**Getting Started**](#-getting-started)
-- [**Contributing and Giving Feedback**](#-contributing-and-giving-feedback)
-- [**Contributors and Sponsors**](#-contributors-and-sponsors)
-- [**Accessibility Statement**](#-accessibility-statement)
-- [**License**](#-license)
+- [TIND Universal Viewer](#tind-universal-viewer)
+  - [Publishing](#publishing)
+  - [🌐 Website](#-website)
+  - [📖 Getting Started](#-getting-started)
+  - [💻 Contributing and Giving Feedback](#-contributing-and-giving-feedback)
+  - [🏅 Contributors and Sponsors](#-contributors-and-sponsors)
+  - [📖 Accessibility Statement](#-accessibility-statement)
+  - [📖 License](#-license)
 
 ## 🌐 Website
 

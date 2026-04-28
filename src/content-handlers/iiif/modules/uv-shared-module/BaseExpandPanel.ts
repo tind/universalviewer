@@ -1,4 +1,4 @@
-const $ = require("jquery");
+const $ = window.$;
 import { Bools } from "../../Utils";
 import { ExpandPanel } from "../../extensions/config/ExpandPanel";
 import { BaseView } from "./BaseView";

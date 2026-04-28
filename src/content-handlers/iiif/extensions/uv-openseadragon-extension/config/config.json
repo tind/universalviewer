@@ -365,6 +365,7 @@
         "visibilityRatio": 0.5,
         "zoomToInitialAnnotation": true,
         "trimAttributionCount": 150,
+        "visibilityRatio": 0.5,
         "tileTimeout": 30000
       },
       "content": {

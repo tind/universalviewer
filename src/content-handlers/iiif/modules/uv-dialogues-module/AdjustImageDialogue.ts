@@ -1,4 +1,4 @@
-const $ = require("jquery");
+const $ = window.$;
 import { BaseConfig } from "../../BaseConfig";
 import { IIIFEvents } from "../../IIIFEvents";
 import OpenSeadragonExtension from "../../extensions/uv-openseadragon-extension/Extension";

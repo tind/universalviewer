@@ -10,11 +10,11 @@ describe("Universal Viewer", () => {
     return await page.evaluate(() => {
       const el = document.querySelector(".displayregioncontainer");
       if (!el) return 0;
-      
+
       const transform = el.style.transform || "";
       const match = transform.match(/rotate\((-?\d+(?:\.\d+)?)deg\)/);
       if (!match) return 0;
-      
+
       const deg = Number(match[1]);
       return ((deg % 360) + 360) % 360;
     });
@@ -53,7 +53,9 @@ describe("Universal Viewer", () => {
   const waitForCanvasValue = async (page, expected) => {
     await page.waitForFunction(
       (expectedValue) => {
-        const match = window.location.href.match(/(?:^|[?&#])(cv|canvas|page)=([^&#]*)/);
+        const match = window.location.href.match(
+          /(?:^|[?&#])(cv|canvas|page)=([^&#]*)/
+        );
         if (!match) return expectedValue === 0;
 
         const rawValue = match[2];
@@ -71,7 +73,7 @@ describe("Universal Viewer", () => {
     const match = url.match(/[?&#]xywh=([^&]+)/);
     return match ? decodeURIComponent(match[1]) : null;
   };
-  
+
   beforeAll(async () => {
     browser = await puppeteer.launch();
     page = await browser.newPage();
@@ -208,7 +210,7 @@ describe("Universal Viewer", () => {
         (btn) => btn.disabled
       );
       expect(isPrevDisabledInitially).toBe(true);
-      
+
       await page.click(".btn.imageBtn.next");
       await waitForCanvasValue(page, 1);
 
@@ -280,7 +282,7 @@ describe("Universal Viewer", () => {
       await page.waitForSelector(".rotate.viewportNavButton", {
         visible: true,
       });
-      
+
       const initialRot = await getRotationFromNavigator();
 
       await page.click(".rotate.viewportNavButton");

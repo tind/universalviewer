@@ -1,0 +1,49 @@
+name: Test and Publish
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  test-and-publish:
+    name: Test and Publish
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Setup Node
+        uses: actions/setup-node@v6
+        with:
+          node-version: "24"
+          registry-url: "https://registry.npmjs.org"
+
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Install npm dependencies
+        run: npm clean-install
+
+      - name: Lint code
+        run: npm run lint-code && git diff --exit-code
+
+      - name: Lint styles
+        run: npm run lint-styles && git diff --exit-code
+
+      - name: Prettify code
+        run: npm run prettify && git diff --exit-code
+
+      - name: Build assets
+        run: npm run build && npm run build-tsc && npm run build-es
+
+      - name: Make AppArmor more lenient for test
+        run: echo 0 | sudo tee /proc/sys/kernel/apparmor_restrict_unprivileged_userns
+
+      - name: Run tests
+        run: npm run test
+
+      - name: Publish
+        run: npm publish --access public

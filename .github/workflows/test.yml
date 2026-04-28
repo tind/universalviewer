@@ -1,6 +1,7 @@
 name: Test
 
 on:
+  pull_request:
   push:
     tags-ignore:
       - "v*"
@@ -11,13 +12,14 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
       - name: Setup Node
         uses: actions/setup-node@v6
         with:
           node-version: "24"
-
-      - name: Checkout
-        uses: actions/checkout@v6
+          registry-url: "https://registry.npmjs.org"
 
       - name: Install npm dependencies
         run: npm clean-install
@@ -33,6 +35,9 @@ jobs:
 
       - name: Build assets
         run: npm run build && npm run build-tsc && npm run build-es
+
+      - name: Make AppArmor more lenient for test
+        run: echo 0 | sudo tee /proc/sys/kernel/apparmor_restrict_unprivileged_userns
 
       - name: Run tests
         run: npm run test

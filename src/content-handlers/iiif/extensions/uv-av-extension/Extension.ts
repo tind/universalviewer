@@ -1,3 +1,4 @@
+const $ = window.$;
 import { AVCenterPanel } from "../../modules/uv-avcenterpanel-module/AVCenterPanel";
 import { IIIFEvents } from "../../IIIFEvents";
 import { BaseExtension } from "../../modules/uv-shared-module/BaseExtension";

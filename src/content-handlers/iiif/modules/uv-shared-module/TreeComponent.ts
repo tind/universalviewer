@@ -1,3 +1,4 @@
+const $ = window.$;
 import { TreeNodeType, TreeNode } from "manifesto.js";
 import {
   Helper,

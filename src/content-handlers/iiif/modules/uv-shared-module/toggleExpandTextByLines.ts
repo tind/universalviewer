@@ -1,3 +1,4 @@
+const $ = window.$;
 import { Strings } from "../../Utils";
 
 function switchClass(element: JQuery, class1: string, class2: string) {

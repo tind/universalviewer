@@ -21,6 +21,14 @@ const config = [
       umdNamedDefine: true,
       chunkFilename: "[name].[contenthash].js",
     },
+    externals: {
+      jquery: {
+        commonjs: "jquery",
+        commonjs2: "jquery",
+        amd: "jquery",
+        root: "$",
+      },
+    },
     resolve: {
       extensions: [".ts", ".tsx", ".js"],
       fallback: {
@@ -80,11 +88,6 @@ const config = [
     plugins: [
       new webpack.EnvironmentPlugin({
         PACKAGE_VERSION: pkg.version,
-      }),
-      new webpack.ProvidePlugin({
-        $: "jquery",
-        jQuery: "jquery",
-        "window.jQuery": "jquery",
       }),
       new CopyPlugin({
         patterns: [

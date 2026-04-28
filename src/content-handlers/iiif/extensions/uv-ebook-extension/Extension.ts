@@ -1,3 +1,4 @@
+const $ = window.$;
 import { IIIFEvents } from "../../IIIFEvents";
 import { BaseExtension } from "../../modules/uv-shared-module/BaseExtension";
 import { EbookLeftPanel } from "../../modules/uv-ebookleftpanel-module/EbookLeftPanel";

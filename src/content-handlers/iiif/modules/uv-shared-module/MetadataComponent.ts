@@ -1,3 +1,4 @@
+const $ = window.$;
 import { Canvas, Range, Utils as Utils } from "manifesto.js";
 import {
   Helper,

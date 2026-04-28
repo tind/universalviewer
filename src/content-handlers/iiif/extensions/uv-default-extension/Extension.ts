@@ -1,3 +1,4 @@
+const $ = window.$;
 import { IIIFEvents } from "../../IIIFEvents";
 import { BaseExtension } from "../../modules/uv-shared-module/BaseExtension";
 import { FileLinkCenterPanel } from "../../modules/uv-filelinkcenterpanel-module/FileLinkCenterPanel";

@@ -1,3 +1,4 @@
+const $ = window.$;
 import { ViewingDirection } from "@iiif/vocabulary";
 import { Canvas, Range, Thumb } from "manifesto.js";
 import {

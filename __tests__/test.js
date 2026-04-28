@@ -1,9 +1,6 @@
 test.skip("Configuration options", () => {});
 
-const puppeteer = require("puppeteer");
-
 describe("Universal Viewer", () => {
-  let browser;
   let page;
 
   const getRotationFromNavigator = async () => {
@@ -75,13 +72,12 @@ describe("Universal Viewer", () => {
   };
 
   beforeAll(async () => {
-    browser = await puppeteer.launch();
-    page = await browser.newPage();
+    page = await globalThis.browser.newPage();
     await page.goto("http://localhost:4444");
   });
 
   afterAll(async () => {
-    await browser.close();
+    await page.close();
   });
 
   it("has the correct page title", async () => {

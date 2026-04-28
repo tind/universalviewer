@@ -1,4 +1,5 @@
 import { AlephCenterPanel } from "../../modules/uv-alephcenterpanel-module/AlephCenterPanel";
+const $ = window.$;
 import { IIIFEvents } from "../../IIIFEvents";
 import { BaseExtension } from "../../modules/uv-shared-module/BaseExtension";
 import { DownloadDialogue } from "./DownloadDialogue";

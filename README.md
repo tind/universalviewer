@@ -2,46 +2,37 @@
 
 TIND Universal Viewer is a fork of [Universal Viewer](https://github.com/UniversalViewer/universalviewer). It contains the following changes:
 
-- Removes bundled jQuery by changing all occurrences of `require("jquery")` with `window.$`.
-- Removes GitHub Workflows.
+- Publishes the scoped npm package `@tindtechnologies/universalviewer` from TIND-specific GitHub Actions workflows, using TIND prerelease versions and the `tind` npm dist-tag.
+- Expects a host-provided jQuery instance at `window.$` instead of bundling jQuery.
+- Exposes the OpenSeadragon `tileTimeout` configuration option. The default is `30000` ms.
+
+## Branches
+
+- `dev` is a carbon copy of the `dev` branch in the upstream [UniversalViewer/universalviewer](https://github.com/UniversalViewer/universalviewer) repository.
+- `local/dev` is our fork working branch. We manage TIND-specific changes here, regularly merge upstream `dev` into it, and keep the version more or less in sync with upstream except for the `tind` prerelease identifier.
+- `develop` is no longer used. It was previously our fork working branch.
 
 ## Publishing
 
-Publishing is done manually. Here is how.
+Publishing is handled by the `Test and Publish` GitHub Actions workflow.
 
-1. Make sure you are on the latest `develop` branch
+Publishing is triggered by creating a tagged GitHub release whose tag name starts with `v`, for example `v4.3.0-tind.1`. The workflow installs dependencies, runs linting, formatting checks, builds the package, runs tests, then publishes to npm with the `tind` dist-tag.
 
-    ```shell
-    git checkout develop
-    git fetch
-    git reset --hard origin/develop
-    ```
+To release a new TIND prerelease:
 
-2. Bump the version. Note: this creates and tags a commit which should be pushed.
+1. Open a pull request with your changes.
 
-    ```shell
-    npm version prerelease --preid=alpha
-    git push origin develop
-    ```
+2. In the same pull request, bump the version in `package.json` and `package-lock.json` without creating a git tag.
 
-3. Install NPM dependencies
+    For example:
 
     ```shell
-    npm ci
+    npm version prerelease --preid tind --git-tag-version false
     ```
 
-4. Build the assets
+3. Wait for the `Test` workflow to pass, then merge the pull request.
 
-    ```shell
-    npm run build && npm run build-tsc && npm run build-es
-    ```
-
-5. Publish
-
-    ```shell
-    export NPM_TOKEN=<your token here>
-    npm publish --access public --otp <2fa one time code here>
-    ```
+4. After merging, use the GitHub UI to create a new release with a tag name starting with `v`, matching the package version, for example `v4.3.0-tind.1`.
 
 ----
 
